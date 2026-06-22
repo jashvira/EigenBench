@@ -13,6 +13,7 @@ _DATASET_PATHS = {
     "reddit": Path("data/scenarios/reddit_questions.json"),
     "oasst": Path("data/scenarios/oasst_questions.json"),
     "airisk": Path("data/scenarios/airiskdilemmas.json"),
+    "wildchat_sample": Path("data/scenarios/wildchat_questions_sample_10k.json"),
 }
 
 
