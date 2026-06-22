@@ -5,22 +5,23 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from scenario_classifier.core.io import OUTPUT_ROOT, REPO_ROOT
+from scenario_classifier.core.io import LABELS_ROOT, REPO_ROOT
 
 
-DEFAULT_AUDIT_DIR = OUTPUT_ROOT / "constitution_matches" / "high_confidence_audit"
+DEFAULT_AUDIT_DIR = LABELS_ROOT / "constitution_matches" / "high_confidence_audit"
 ALLOWED_VERDICTS = {"agree", "downgrade", "relabel", "remove"}
-ALLOWED_CONSTITUTIONS = {
-    "kindness",
-    "conservatism",
-    "deep_ecology",
-    "none",
-}
 ALLOWED_CONFIDENCE = {"high", "medium", "low"}
+CONSTITUTION_LABEL_RE = re.compile(r"^[a-z][a-z0-9_-]*$")
+
+
+def valid_primary_label(value: Any) -> bool:
+    """Return whether an audit primary label is none or a slug-like constitution id."""
+    return value == "none" or (isinstance(value, str) and bool(CONSTITUTION_LABEL_RE.fullmatch(value)))
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -46,7 +47,7 @@ def validate_audit_row(row: dict[str, Any], path: Path) -> None:
         raise ValueError(f"{path}: missing integer scenario_index")
     if row.get("verdict") not in ALLOWED_VERDICTS:
         raise ValueError(f"{path}: bad verdict {row.get('verdict')!r} for {row.get('scenario_index')}")
-    if row.get("suggested_primary") not in ALLOWED_CONSTITUTIONS:
+    if not valid_primary_label(row.get("suggested_primary")):
         raise ValueError(f"{path}: bad suggested_primary {row.get('suggested_primary')!r} for {row.get('scenario_index')}")
     if row.get("suggested_confidence") not in ALLOWED_CONFIDENCE:
         raise ValueError(f"{path}: bad suggested_confidence {row.get('suggested_confidence')!r} for {row.get('scenario_index')}")

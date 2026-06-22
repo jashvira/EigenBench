@@ -15,11 +15,11 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
-from scenario_classifier.core.io import OUTPUT_ROOT, REPO_ROOT
+from scenario_classifier.core.io import DEFAULT_AIRISK_SCENARIOS, OUTPUT_ROOT, REPO_ROOT, VALUEARENA_ROOT
 
 
-DEFAULT_INPUT = OUTPUT_ROOT / "valuearena" / "processed" / "scenario_criterion_tie_rates.csv"
-DEFAULT_SCENARIOS = REPO_ROOT / "data" / "scenarios" / "airiskdilemmas.json"
+DEFAULT_INPUT = VALUEARENA_ROOT / "processed" / "scenario_criterion_tie_rates.csv"
+DEFAULT_SCENARIOS = DEFAULT_AIRISK_SCENARIOS
 DEFAULT_OUTPUT_DIR = OUTPUT_ROOT / "airiskdilemmas_623_stats"
 
 
@@ -245,7 +245,7 @@ def write_readme(path: Path, summary: dict[str, Any]) -> None:
 This folder contains stats for processed ValueArena rows that both:
 
 1. have `dataset_range` containing `airiskdilemmas`
-2. have scenario text present in `data/scenarios/airiskdilemmas.json`
+2. have scenario text present in `scenario_classifier/data/scenarios/airiskdilemmas.json`
 
 This avoids Reddit-style rows that were present under the AIRisk dataset label.
 

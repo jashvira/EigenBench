@@ -8,15 +8,16 @@ import re
 from pathlib import Path
 from typing import Any
 
-from scenario_classifier.core.io import OUTPUT_ROOT, REPO_ROOT
+from scenario_classifier.core.io import DATA_ROOT, DEFAULT_RAW_CORPUS, REPO_ROOT
 
 CONSTITUTIONS_DIR = REPO_ROOT / "data" / "constitutions"
-OUTPUT_PATH = OUTPUT_ROOT / "criteria_cards" / "raw_criteria_embedding_units_local_anchors_v0_1.jsonl"
-CONSTITUTIONS = (
+OUTPUT_PATH = DEFAULT_RAW_CORPUS
+PUBLIC_CONSTITUTIONS = (
     "kindness",
     "conservatism",
     "deep_ecology",
 )
+PRIVATE_ANCHORS_DIR = DATA_ROOT / "private_anchors"
 VERSION = "raw-v0.1"
 
 
@@ -47,11 +48,18 @@ def load_criteria(path: Path) -> list[str]:
     return criteria
 
 
+def constitution_paths() -> list[tuple[str, Path]]:
+    """Return tracked public constitutions plus optional ignored local anchors."""
+    paths = [(constitution, CONSTITUTIONS_DIR / f"{constitution}.json") for constitution in PUBLIC_CONSTITUTIONS]
+    if PRIVATE_ANCHORS_DIR.exists():
+        paths.extend((path.stem, path) for path in sorted(PRIVATE_ANCHORS_DIR.glob("*.json")))
+    return paths
+
+
 def build_units() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
 
-    for constitution in CONSTITUTIONS:
-        path = CONSTITUTIONS_DIR / f"{constitution}.json"
+    for constitution, path in constitution_paths():
         source_sha = sha256_bytes(path)
         criteria = load_criteria(path)
 

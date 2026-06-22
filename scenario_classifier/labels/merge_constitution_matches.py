@@ -10,24 +10,26 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from scenario_classifier.core.io import OUTPUT_ROOT, REPO_ROOT
+from scenario_classifier.core.io import LABELS_ROOT, REPO_ROOT
 
 
-DEFAULT_BATCH_DIR = OUTPUT_ROOT / "constitution_matches" / "subagent_batches"
-DEFAULT_OUTPUT_DIR = OUTPUT_ROOT / "constitution_matches"
-DEFAULT_OVERRIDES = OUTPUT_ROOT / "constitution_matches" / "human_review_overrides.jsonl"
+DEFAULT_OUTPUT_DIR = LABELS_ROOT / "constitution_matches"
+DEFAULT_BATCH_DIR = DEFAULT_OUTPUT_DIR / "subagent_batches"
+DEFAULT_OVERRIDES = DEFAULT_OUTPUT_DIR / "human_review_overrides.jsonl"
 
-ALLOWED_CONSTITUTIONS = {
-    "kindness",
-    "conservatism",
-    "deep_ecology",
-}
 ALLOWED_STATUSES = {"live", "weak"}
 ALLOWED_CONFIDENCE = {"high", "medium", "low"}
+CONSTITUTION_LABEL_RE = re.compile(r"^[a-z][a-z0-9_-]*$")
+
+
+def valid_constitution_label(value: Any) -> bool:
+    """Return whether a local annotation label has the expected slug shape."""
+    return isinstance(value, str) and bool(CONSTITUTION_LABEL_RE.fullmatch(value))
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -60,7 +62,7 @@ def validate_row(row: dict[str, Any], *, path: Path) -> None:
             raise ValueError(f"{path}: match must be an object for scenario {row['scenario_index']}")
         constitution = match.get("constitution")
         status = match.get("status")
-        if constitution not in ALLOWED_CONSTITUTIONS:
+        if not valid_constitution_label(constitution):
             raise ValueError(f"{path}: bad constitution {constitution!r} for scenario {row['scenario_index']}")
         if status not in ALLOWED_STATUSES:
             raise ValueError(f"{path}: bad status {status!r} for scenario {row['scenario_index']}")
@@ -68,7 +70,7 @@ def validate_row(row: dict[str, Any], *, path: Path) -> None:
             raise ValueError(f"{path}: duplicate constitution {constitution!r} for scenario {row['scenario_index']}")
         seen.add(constitution)
     primary = row.get("primary_constitution")
-    if primary != "none" and primary not in ALLOWED_CONSTITUTIONS:
+    if primary != "none" and not valid_constitution_label(primary):
         raise ValueError(f"{path}: bad primary_constitution {primary!r} for scenario {row['scenario_index']}")
     if primary == "none" and any(match["status"] == "live" for match in matches):
         raise ValueError(f"{path}: primary_constitution is none despite live match for scenario {row['scenario_index']}")

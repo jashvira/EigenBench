@@ -12,12 +12,12 @@ from typing import Any
 
 from scenario_classifier.audits.embedding_audit import DEFAULT_MODEL, load_dotenv, load_or_embed, slugify_model
 from scenario_classifier.audits.embedding_audit import card_text, raw_text
-from scenario_classifier.core.io import DEFAULT_CARD_CORPUS, DEFAULT_RAW_CORPUS, OUTPUT_ROOT, load_jsonl
+from scenario_classifier.core.io import DEFAULT_CARD_CORPUS, DEFAULT_RAW_CORPUS, LABELS_ROOT, OUTPUT_ROOT, load_jsonl
 from scenario_classifier.core.ranking_metrics import recall_at_k
 from scenario_classifier.retrieval.retrievers import EmbeddingRetriever
 
 
-DEFAULT_ANNOTATIONS = OUTPUT_ROOT / "constitution_matches" / "airisk_623_constitution_matches.jsonl"
+DEFAULT_ANNOTATIONS = LABELS_ROOT / "constitution_matches" / "airisk_623_constitution_matches.jsonl"
 DEFAULT_OUTPUT_ROOT = OUTPUT_ROOT / "embedding_audit"
 
 

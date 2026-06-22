@@ -8,10 +8,18 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-OUTPUT_ROOT = REPO_ROOT / "data" / "output"
-DEFAULT_SCENARIOS = REPO_ROOT / "data" / "scenarios" / "oasst_questions.json"
-DEFAULT_CARD_CORPUS = OUTPUT_ROOT / "criteria_cards" / "criteria_cards_local_anchors_v0_4.jsonl"
-DEFAULT_RAW_CORPUS = OUTPUT_ROOT / "criteria_cards" / "raw_criteria_embedding_units_local_anchors_v0_1.jsonl"
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+DATA_ROOT = PACKAGE_ROOT / "data"
+OUTPUT_ROOT = DATA_ROOT / "outputs"
+SCENARIOS_ROOT = DATA_ROOT / "scenarios"
+CORPORA_ROOT = DATA_ROOT / "corpora"
+LABELS_ROOT = DATA_ROOT / "labels"
+VALUEARENA_ROOT = DATA_ROOT / "valuearena"
+
+DEFAULT_SCENARIOS = SCENARIOS_ROOT / "oasst_questions.json"
+DEFAULT_AIRISK_SCENARIOS = SCENARIOS_ROOT / "airiskdilemmas.json"
+DEFAULT_CARD_CORPUS = CORPORA_ROOT / "criteria_cards" / "criteria_cards_local_anchors_v0_4.jsonl"
+DEFAULT_RAW_CORPUS = CORPORA_ROOT / "criteria_cards" / "raw_criteria_embedding_units_local_anchors_v0_1.jsonl"
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
