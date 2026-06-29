@@ -115788,26 +115788,27 @@ function useApplyColumnVisibility(gridRef, columnDefs, visibility) {
 var detailsForItem = (item, logDetails) => item.type === "file" && item.log ? logDetails[item.log.name] : void 0;
 var buildLogListRow = (item, details) => {
 	const preview = item.type === "file" ? item.logPreview : void 0;
+	const summary = preview?.stats || preview?.results || preview?.eval ? preview : details;
 	let totalTokens;
-	if (details?.stats?.model_usage) {
+	if (summary?.stats?.model_usage) {
 		totalTokens = 0;
-		for (const usage of Object.values(details.stats.model_usage)) totalTokens += usage.total_tokens;
+		for (const usage of Object.values(summary.stats.model_usage)) totalTokens += usage.total_tokens;
 	}
 	let duration;
-	if (details?.stats?.started_at && details?.stats?.completed_at) {
-		const start = new Date(details.stats.started_at).getTime();
-		const end = new Date(details.stats.completed_at).getTime();
+	if (summary?.stats?.started_at && summary?.stats?.completed_at) {
+		const start = new Date(summary.stats.started_at).getTime();
+		const end = new Date(summary.stats.completed_at).getTime();
 		if (start && end && end > start) duration = (end - start) / 1e3;
 	}
-	const taskArgsSource = details?.eval?.task_args_passed ?? details?.eval?.task_args;
+	const taskArgsSource = summary?.eval?.task_args_passed ?? summary?.eval?.task_args;
 	let taskArgs;
 	if (taskArgsSource) {
 		const entries = Object.entries(taskArgsSource);
 		if (entries.length > 0) taskArgs = entries.map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(", ");
 	}
 	let percentCompleted;
-	const total = details?.results?.total_samples;
-	const completed = details?.results?.completed_samples;
+	const total = summary?.results?.total_samples;
+	const completed = summary?.results?.completed_samples;
 	if (total && total > 0 && completed !== void 0) percentCompleted = completed / total * 100;
 	let sampleErrors;
 	if (details?.sampleSummaries) sampleErrors = details.sampleSummaries.filter((s) => s.error).length;
@@ -115832,22 +115833,22 @@ var buildLogListRow = (item, details) => {
 		itemCount: item.type === "folder" ? item.itemCount : void 0,
 		log: item.type === "file" ? item.log : void 0,
 		path: item.type === "file" ? item.name : void 0,
-		totalSamples: details?.results?.total_samples,
-		completedSamples: details?.results?.completed_samples,
-		sandbox: details?.eval?.sandbox?.type,
+		totalSamples: summary?.results?.total_samples,
+		completedSamples: summary?.results?.completed_samples,
+		sandbox: summary?.eval?.sandbox?.type,
 		totalTokens,
 		duration,
-		taskFile: details?.eval?.task_file ?? void 0,
+		taskFile: summary?.eval?.task_file ?? void 0,
 		taskArgs,
 		taskArgsRaw: taskArgsSource ?? void 0,
-		tags: details?.tags,
+		tags: summary?.tags,
 		percentCompleted,
 		sampleErrors,
 		sampleLimits,
-		errorMessage: details?.error?.message
+		errorMessage: summary?.error?.message
 	};
-	if (details?.results?.scores) {
-		for (const evalScore of details.results.scores) if (evalScore.metrics) for (const [metricName, metric] of Object.entries(evalScore.metrics)) row[`score_${evalScore.name}/${metricName}`] = metric.value;
+	if (summary?.results?.scores) {
+		for (const evalScore of summary.results.scores) if (evalScore.metrics) for (const [metricName, metric] of Object.entries(evalScore.metrics)) row[`score_${evalScore.name}/${metricName}`] = metric.value;
 	}
 	return row;
 };
