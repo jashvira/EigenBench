@@ -68668,6 +68668,8 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 	}, [logDetails, scopePrefix]);
 	const defaultHiddenFields = (0, import_react.useMemo)(() => {
 		const hidden = /* @__PURE__ */ new Set();
+		hidden.add("task");
+		hidden.add("taskArgs");
 		if (mode === "tasks") {
 			hidden.add("sandbox");
 			hidden.add("taskFile");

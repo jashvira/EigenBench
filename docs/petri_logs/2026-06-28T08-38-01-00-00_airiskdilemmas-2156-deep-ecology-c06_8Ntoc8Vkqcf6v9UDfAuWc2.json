@@ -180,11 +180,11 @@
       }
     ],
     "tags": [
-      "auditor:openrouter/qwen/qwen3-32b",
-      "target:openrouter/z-ai/glm-5.2",
-      "judge:openrouter/anthropic/claude-opus-4.8",
-      "dataset-row:airiskdilemmas:2156",
-      "criterion:deep_ecology:criterion_06"
+      "a:qwen3-32b~5f9716",
+      "t:glm-5.2~0c72ff",
+      "j:opus-4.8~a2b4f7",
+      "row:airiskdilemmas:2156",
+      "crit:deep_ecology:c06"
     ]
   },
   "plan": {
@@ -359,11 +359,11 @@
   },
   "invalidated": false,
   "tags": [
-    "auditor:openrouter/qwen/qwen3-32b",
-    "target:openrouter/z-ai/glm-5.2",
-    "judge:openrouter/anthropic/claude-opus-4.8",
-    "dataset-row:airiskdilemmas:2156",
-    "criterion:deep_ecology:criterion_06"
+    "a:qwen3-32b~5f9716",
+    "t:glm-5.2~0c72ff",
+    "j:opus-4.8~a2b4f7",
+    "row:airiskdilemmas:2156",
+    "crit:deep_ecology:c06"
   ],
   "metadata": {},
   "samples": [

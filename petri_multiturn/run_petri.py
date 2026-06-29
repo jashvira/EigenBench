@@ -15,6 +15,10 @@ from argparse import ArgumentParser
 from collections.abc import Sequence
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import yaml
 from dotenv import load_dotenv
 from inspect_ai import Task, task
@@ -41,8 +45,14 @@ from inspect_petri import (
 from inspect_petri.target import controller
 from inspect_petri.util import parse_markdown_file
 
+from petri_multiturn.tags import (
+    criterion_tag,
+    merge_tags as merge_tag_list,
+    run_tags,
+    slug,
+)
 
-ROOT = Path(__file__).resolve().parents[1]
+
 PETRI_DIR = ROOT / "petri_multiturn"
 SEED_TEMPLATE = PETRI_DIR / "seeds" / "criterion_probe.md"
 PROBE_QUALITY_TEMPLATE = PETRI_DIR / "dimensions" / "probe_quality.md"
@@ -234,11 +244,6 @@ def task_value(
     return str(value) if value is not None else None
 
 
-def slug(value: str) -> str:
-    """Convert text into a path-safe lowercase slug."""
-    return re.sub(r"[^a-z0-9._-]+", "-", value.lower()).strip("-")
-
-
 def pop_option(args: list[str], name: str) -> tuple[str | None, list[str]]:
     value: str | None = None
     out: list[str] = []
@@ -283,36 +288,28 @@ def model_role(args: list[str], role: str) -> str | None:
     return None
 
 
-def tag_component(value: str) -> str:
-    return slug(value).replace("-", "_")
-
-
 def generated_tags(args: list[str]) -> list[str]:
     config = task_config(args)
     constitution = (
         task_value(args, "constitution", config) or "data/constitutions/kindness.json"
     )
-    constitution_name = tag_component(Path(constitution).stem)
-    criterion_id = tag_component(task_value(args, "criterion_id", config) or "criterion_01")
-    scenario_dataset = tag_component(task_value(args, "scenario_dataset", config) or "manual")
-    scenario_index = tag_component(task_value(args, "scenario_index", config) or "")
-
-    tags: list[str] = []
-    for role in ("auditor", "target", "judge"):
-        if model := model_role(args, role):
-            tags.append(f"{role}:{model}")
-    if scenario_index:
-        tags.append(f"dataset-row:{scenario_dataset}:{scenario_index}")
-    else:
-        tags.append(f"dataset-row:{scenario_dataset}")
-    tags.append(f"criterion:{constitution_name}:{criterion_id}")
-    return tags
+    roles = {
+        role: model
+        for role in ("auditor", "target", "judge")
+        if (model := model_role(args, role))
+    }
+    return run_tags(
+        model_roles=roles,
+        scenario_dataset=task_value(args, "scenario_dataset", config) or "manual",
+        scenario_index=task_value(args, "scenario_index", config) or "",
+        constitution=constitution,
+        criterion_id=task_value(args, "criterion_id", config) or "criterion_01",
+    )
 
 
 def merge_tags(existing: str | None, generated: Sequence[str]) -> str:
     tags = [tag.strip() for tag in (existing or "").split(",") if tag.strip()]
-    tags.extend(generated)
-    return ",".join(dict.fromkeys(tags))
+    return ",".join(merge_tag_list(tags, generated))
 
 
 def model_slug(model: str | None) -> str:
@@ -330,10 +327,7 @@ def model_slug(model: str | None) -> str:
 
 def criterion_slug(criterion_id: str) -> str:
     """Return the compact criterion name used in Petri run directories."""
-    match = re.fullmatch(r"criterion_0*([0-9]+)", criterion_id)
-    if match:
-        return f"c{int(match.group(1)):02d}"
-    return slug(criterion_id)
+    return criterion_tag(criterion_id)
 
 
 def name_part(value: str) -> str:

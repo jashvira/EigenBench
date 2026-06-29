@@ -14,8 +14,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from petri_multiturn.tags import merge_tags, run_tags
+
+
 DEFAULT_SOURCE = ROOT / "runs" / "petri_multiturn"
 OUTPUT_DIR = ROOT / "docs"
 SITE_LOG_DIR = "petri_logs"
@@ -169,42 +174,18 @@ def model_roles(eval_info: dict[str, Any]) -> dict[str, str] | None:
     return mapped or None
 
 
-def slug(value: str) -> str:
-    return re.sub(r"[^a-z0-9._-]+", "-", value.lower()).strip("-")
-
-
-def tag_component(value: str) -> str:
-    return slug(value).replace("-", "_")
-
-
-def merge_tags(existing: list[str] | None, generated: list[str]) -> list[str]:
-    tags = [tag for tag in existing or [] if tag]
-    tags.extend(generated)
-    return list(dict.fromkeys(tags))
-
-
 def log_tags(log: dict[str, Any]) -> list[str]:
     eval_info = log.get("eval") or {}
     task_args = eval_info.get("task_args_passed") or eval_info.get("task_args") or {}
     roles = model_roles(eval_info) or {}
-
-    tags = [
-        f"{role}:{roles[role]}"
-        for role in ("auditor", "target", "judge")
-        if role in roles and roles[role]
-    ]
-
-    scenario_dataset = tag_component(str(task_args.get("scenario_dataset") or "manual"))
-    scenario_index = tag_component(str(task_args.get("scenario_index") or ""))
-    if scenario_index:
-        tags.append(f"dataset-row:{scenario_dataset}:{scenario_index}")
-    else:
-        tags.append(f"dataset-row:{scenario_dataset}")
-
-    constitution = tag_component(Path(str(task_args.get("constitution") or "")).stem)
-    criterion_id = tag_component(str(task_args.get("criterion_id") or "criterion_01"))
-    tags.append(f"criterion:{constitution}:{criterion_id}")
-    return merge_tags(log.get("tags"), tags)
+    generated = run_tags(
+        model_roles=roles,
+        scenario_dataset=str(task_args.get("scenario_dataset") or "manual"),
+        scenario_index=str(task_args.get("scenario_index") or ""),
+        constitution=str(task_args.get("constitution") or ""),
+        criterion_id=str(task_args.get("criterion_id") or "criterion_01"),
+    )
+    return merge_tags(log.get("tags") or [], generated)
 
 
 def write_log_with_tags(log: EvalLog, target_dir: Path) -> None:
@@ -325,6 +306,21 @@ def patch_viewer_metadata(asset_path: Path) -> None:
     asset_path.write_text(before + row_text + after, encoding="utf-8")
 
 
+def patch_viewer_columns(asset_path: Path) -> None:
+    text = asset_path.read_text(encoding="utf-8")
+    text = replace_once(
+        text,
+        "\t\tconst hidden = /* @__PURE__ */ new Set();\n"
+        '\t\tif (mode === "tasks") {',
+        "\t\tconst hidden = /* @__PURE__ */ new Set();\n"
+        '\t\thidden.add("task");\n'
+        '\t\thidden.add("taskArgs");\n'
+        '\t\tif (mode === "tasks") {',
+        "default hidden columns",
+    )
+    asset_path.write_text(text, encoding="utf-8")
+
+
 def patch_index_html(index_path: Path, asset_hash: str) -> None:
     text = index_path.read_text(encoding="utf-8")
     context = json.dumps({"log_dir": SITE_LOG_DIR, "abs_log_dir": SITE_LOG_DIR})
@@ -367,6 +363,7 @@ def publish(logs: list[EvalLog]) -> None:
         (site_logs / "eval-set.json").write_text("{}\n", encoding="utf-8")
         (site_logs / "flow.yaml").write_text("", encoding="utf-8")
         patch_viewer_metadata(bundle_out / "assets" / "index.js")
+        patch_viewer_columns(bundle_out / "assets" / "index.js")
 
         (bundle_out / ".nojekyll").touch()
         asset_hash = file_hash(bundle_out / "assets" / "index.js")
@@ -387,11 +384,11 @@ def verify_output() -> dict[str, Any]:
     listing = load_json(log_dir / "listing.json")
     failures: list[str] = []
     required_tag_prefixes = (
-        "auditor:",
-        "target:",
-        "judge:",
-        "dataset-row:",
-        "criterion:",
+        "a:",
+        "t:",
+        "j:",
+        "row:",
+        "crit:",
     )
     tasks: set[str] = set()
     trajectories = 0

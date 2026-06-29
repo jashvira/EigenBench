@@ -34,9 +34,10 @@ Set `PETRI_OPENROUTER_API_KEY` or `OPENROUTER_API_KEY` in `.env`, then:
 The Inspect task name is built from `scenario_dataset`, `scenario_index`,
 constitution, and criterion, e.g. `airiskdilemmas_1307_conservatism_c05`.
 
-Each run is tagged with `auditor:<model>`, `target:<model>`, `judge:<model>`,
-`dataset-row:<dataset>:<index>`, and `criterion:<constitution>:<criterion_id>`.
-Use these tags as the primary filters in Inspect View.
+Each run is tagged with compact filters: `a:<model>`, `t:<model>`,
+`j:<model>`, `row:<dataset>:<index>`, and `crit:<constitution>:<criterion>`.
+Model tags use a readable leaf plus a stable hash of the canonical model id,
+e.g. `t:qwen3-32b~abc123`.
 
 Defaults: `max_turns=6`, JSON logs under
 `runs/petri_multiturn/{constitution}_cNN/a-..._t-..._j-.../logs`, rollback off,

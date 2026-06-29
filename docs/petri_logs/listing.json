@@ -201,11 +201,11 @@
         }
       ],
       "tags": [
-        "auditor:openrouter/openai/gpt-5.5",
-        "target:openrouter/qwen/qwen3-32b",
-        "judge:openrouter/anthropic/claude-opus-4.8",
-        "dataset-row:airiskdilemmas:2156",
-        "criterion:deep_ecology:criterion_06"
+        "a:gpt-5.5~9a8f4a",
+        "t:qwen3-32b~5f9716",
+        "j:opus-4.8~a2b4f7",
+        "row:airiskdilemmas:2156",
+        "crit:deep_ecology:c06"
       ]
     },
     "results": {
@@ -287,11 +287,11 @@
       "connection_limit_history": []
     },
     "tags": [
-      "auditor:openrouter/openai/gpt-5.5",
-      "target:openrouter/qwen/qwen3-32b",
-      "judge:openrouter/anthropic/claude-opus-4.8",
-      "dataset-row:airiskdilemmas:2156",
-      "criterion:deep_ecology:criterion_06"
+      "a:gpt-5.5~9a8f4a",
+      "t:qwen3-32b~5f9716",
+      "j:opus-4.8~a2b4f7",
+      "row:airiskdilemmas:2156",
+      "crit:deep_ecology:c06"
     ]
   },
   "2026-06-28T08-42-00-00-00_airiskdilemmas-2156-deep-ecology-c06_dDi82pSqvngF94LQ7DCGHs.json": {
@@ -496,11 +496,11 @@
         }
       ],
       "tags": [
-        "auditor:openrouter/openai/gpt-5.5",
-        "target:openrouter/z-ai/glm-5.2",
-        "judge:openrouter/anthropic/claude-opus-4.8",
-        "dataset-row:airiskdilemmas:2156",
-        "criterion:deep_ecology:criterion_06"
+        "a:gpt-5.5~9a8f4a",
+        "t:glm-5.2~0c72ff",
+        "j:opus-4.8~a2b4f7",
+        "row:airiskdilemmas:2156",
+        "crit:deep_ecology:c06"
       ]
     },
     "results": {
@@ -580,11 +580,11 @@
       "connection_limit_history": []
     },
     "tags": [
-      "auditor:openrouter/openai/gpt-5.5",
-      "target:openrouter/z-ai/glm-5.2",
-      "judge:openrouter/anthropic/claude-opus-4.8",
-      "dataset-row:airiskdilemmas:2156",
-      "criterion:deep_ecology:criterion_06"
+      "a:gpt-5.5~9a8f4a",
+      "t:glm-5.2~0c72ff",
+      "j:opus-4.8~a2b4f7",
+      "row:airiskdilemmas:2156",
+      "crit:deep_ecology:c06"
     ]
   },
   "2026-06-28T08-38-01-00-00_airiskdilemmas-2156-deep-ecology-c06_8Ntoc8Vkqcf6v9UDfAuWc2.json": {
@@ -789,11 +789,11 @@
         }
       ],
       "tags": [
-        "auditor:openrouter/qwen/qwen3-32b",
-        "target:openrouter/z-ai/glm-5.2",
-        "judge:openrouter/anthropic/claude-opus-4.8",
-        "dataset-row:airiskdilemmas:2156",
-        "criterion:deep_ecology:criterion_06"
+        "a:qwen3-32b~5f9716",
+        "t:glm-5.2~0c72ff",
+        "j:opus-4.8~a2b4f7",
+        "row:airiskdilemmas:2156",
+        "crit:deep_ecology:c06"
       ]
     },
     "results": {
@@ -875,11 +875,11 @@
       "connection_limit_history": []
     },
     "tags": [
-      "auditor:openrouter/qwen/qwen3-32b",
-      "target:openrouter/z-ai/glm-5.2",
-      "judge:openrouter/anthropic/claude-opus-4.8",
-      "dataset-row:airiskdilemmas:2156",
-      "criterion:deep_ecology:criterion_06"
+      "a:qwen3-32b~5f9716",
+      "t:glm-5.2~0c72ff",
+      "j:opus-4.8~a2b4f7",
+      "row:airiskdilemmas:2156",
+      "crit:deep_ecology:c06"
     ]
   },
   "2026-06-28T06-59-12-00-00_airiskdilemmas-2156-deep-ecology-c06_n3uAgWhnpXfKpvoFXPJhW5.json": {
@@ -1084,11 +1084,11 @@
         }
       ],
       "tags": [
-        "auditor:openrouter/qwen/qwen3-32b",
-        "target:openrouter/z-ai/glm-5.2",
-        "judge:openrouter/anthropic/claude-opus-4.8",
-        "dataset-row:airiskdilemmas:2156",
-        "criterion:deep_ecology:criterion_06"
+        "a:qwen3-32b~5f9716",
+        "t:glm-5.2~0c72ff",
+        "j:opus-4.8~a2b4f7",
+        "row:airiskdilemmas:2156",
+        "crit:deep_ecology:c06"
       ]
     },
     "results": {
@@ -1170,11 +1170,11 @@
       "connection_limit_history": []
     },
     "tags": [
-      "auditor:openrouter/qwen/qwen3-32b",
-      "target:openrouter/z-ai/glm-5.2",
-      "judge:openrouter/anthropic/claude-opus-4.8",
-      "dataset-row:airiskdilemmas:2156",
-      "criterion:deep_ecology:criterion_06"
+      "a:qwen3-32b~5f9716",
+      "t:glm-5.2~0c72ff",
+      "j:opus-4.8~a2b4f7",
+      "row:airiskdilemmas:2156",
+      "crit:deep_ecology:c06"
     ]
   },
   "2026-06-28T06-37-50-00-00_airiskdilemmas-2156-deep-ecology-c06_SLtQWQBnpPA6rUGc4CrQvL.json": {
@@ -1379,11 +1379,11 @@
         }
       ],
       "tags": [
-        "auditor:openrouter/openai/gpt-5.5",
-        "target:openrouter/z-ai/glm-5.2",
-        "judge:openrouter/anthropic/claude-opus-4.8",
-        "dataset-row:airiskdilemmas:2156",
-        "criterion:deep_ecology:criterion_06"
+        "a:gpt-5.5~9a8f4a",
+        "t:glm-5.2~0c72ff",
+        "j:opus-4.8~a2b4f7",
+        "row:airiskdilemmas:2156",
+        "crit:deep_ecology:c06"
       ]
     },
     "results": {
@@ -1465,11 +1465,11 @@
       "connection_limit_history": []
     },
     "tags": [
-      "auditor:openrouter/openai/gpt-5.5",
-      "target:openrouter/z-ai/glm-5.2",
-      "judge:openrouter/anthropic/claude-opus-4.8",
-      "dataset-row:airiskdilemmas:2156",
-      "criterion:deep_ecology:criterion_06"
+      "a:gpt-5.5~9a8f4a",
+      "t:glm-5.2~0c72ff",
+      "j:opus-4.8~a2b4f7",
+      "row:airiskdilemmas:2156",
+      "crit:deep_ecology:c06"
     ]
   },
   "2026-06-28T06-30-39-00-00_airiskdilemmas-2156-deep-ecology-c06_Mdq7u3g3XmapFN6rXv4Adf.json": {
@@ -1674,11 +1674,11 @@
         }
       ],
       "tags": [
-        "auditor:openrouter/qwen/qwen3-32b",
-        "target:openrouter/x-ai/grok-4.3",
-        "judge:openrouter/openai/gpt-5.5",
-        "dataset-row:airiskdilemmas:2156",
-        "criterion:deep_ecology:criterion_06"
+        "a:qwen3-32b~5f9716",
+        "t:grok-4.3~d45d26",
+        "j:gpt-5.5~9a8f4a",
+        "row:airiskdilemmas:2156",
+        "crit:deep_ecology:c06"
       ]
     },
     "results": {
@@ -1758,11 +1758,11 @@
       "connection_limit_history": []
     },
     "tags": [
-      "auditor:openrouter/qwen/qwen3-32b",
-      "target:openrouter/x-ai/grok-4.3",
-      "judge:openrouter/openai/gpt-5.5",
-      "dataset-row:airiskdilemmas:2156",
-      "criterion:deep_ecology:criterion_06"
+      "a:qwen3-32b~5f9716",
+      "t:grok-4.3~d45d26",
+      "j:gpt-5.5~9a8f4a",
+      "row:airiskdilemmas:2156",
+      "crit:deep_ecology:c06"
     ]
   },
   "2026-06-28T06-20-39-00-00_airiskdilemmas-2156-deep-ecology-c06_ABxzFtSr3LUxvQSz5sB6ax.json": {
@@ -1967,11 +1967,11 @@
         }
       ],
       "tags": [
-        "auditor:openrouter/moonshotai/kimi-k2.6",
-        "target:openrouter/x-ai/grok-4.3",
-        "judge:openrouter/openai/gpt-5.5",
-        "dataset-row:airiskdilemmas:2156",
-        "criterion:deep_ecology:criterion_06"
+        "a:kimi-k2.6~4a476e",
+        "t:grok-4.3~d45d26",
+        "j:gpt-5.5~9a8f4a",
+        "row:airiskdilemmas:2156",
+        "crit:deep_ecology:c06"
       ]
     },
     "results": {
@@ -2051,11 +2051,11 @@
       "connection_limit_history": []
     },
     "tags": [
-      "auditor:openrouter/moonshotai/kimi-k2.6",
-      "target:openrouter/x-ai/grok-4.3",
-      "judge:openrouter/openai/gpt-5.5",
-      "dataset-row:airiskdilemmas:2156",
-      "criterion:deep_ecology:criterion_06"
+      "a:kimi-k2.6~4a476e",
+      "t:grok-4.3~d45d26",
+      "j:gpt-5.5~9a8f4a",
+      "row:airiskdilemmas:2156",
+      "crit:deep_ecology:c06"
     ]
   },
   "2026-06-28T06-15-18-00-00_airiskdilemmas-2156-deep-ecology-c06_awsgPDidWhP8ysAM4qHy9X.json": {
@@ -2260,11 +2260,11 @@
         }
       ],
       "tags": [
-        "auditor:openrouter/qwen/qwen3-32b",
-        "target:openrouter/x-ai/grok-4.3",
-        "judge:openrouter/openai/gpt-5.5",
-        "dataset-row:airiskdilemmas:2156",
-        "criterion:deep_ecology:criterion_06"
+        "a:qwen3-32b~5f9716",
+        "t:grok-4.3~d45d26",
+        "j:gpt-5.5~9a8f4a",
+        "row:airiskdilemmas:2156",
+        "crit:deep_ecology:c06"
       ]
     },
     "results": {
@@ -2344,11 +2344,11 @@
       "connection_limit_history": []
     },
     "tags": [
-      "auditor:openrouter/qwen/qwen3-32b",
-      "target:openrouter/x-ai/grok-4.3",
-      "judge:openrouter/openai/gpt-5.5",
-      "dataset-row:airiskdilemmas:2156",
-      "criterion:deep_ecology:criterion_06"
+      "a:qwen3-32b~5f9716",
+      "t:grok-4.3~d45d26",
+      "j:gpt-5.5~9a8f4a",
+      "row:airiskdilemmas:2156",
+      "crit:deep_ecology:c06"
     ]
   },
   "2026-06-28T06-04-58-00-00_airiskdilemmas-2156-deep-ecology-c06_b6aHL4fNVGpQDc3yookm96.json": {
@@ -2553,11 +2553,11 @@
         }
       ],
       "tags": [
-        "auditor:openrouter/openai/gpt-5.5",
-        "target:openrouter/x-ai/grok-4.3",
-        "judge:openrouter/openai/gpt-5.5-pro",
-        "dataset-row:airiskdilemmas:2156",
-        "criterion:deep_ecology:criterion_06"
+        "a:gpt-5.5~9a8f4a",
+        "t:grok-4.3~d45d26",
+        "j:gpt-5.5-pro~cd6478",
+        "row:airiskdilemmas:2156",
+        "crit:deep_ecology:c06"
       ]
     },
     "results": {
@@ -2637,11 +2637,11 @@
       "connection_limit_history": []
     },
     "tags": [
-      "auditor:openrouter/openai/gpt-5.5",
-      "target:openrouter/x-ai/grok-4.3",
-      "judge:openrouter/openai/gpt-5.5-pro",
-      "dataset-row:airiskdilemmas:2156",
-      "criterion:deep_ecology:criterion_06"
+      "a:gpt-5.5~9a8f4a",
+      "t:grok-4.3~d45d26",
+      "j:gpt-5.5-pro~cd6478",
+      "row:airiskdilemmas:2156",
+      "crit:deep_ecology:c06"
     ]
   }
 }

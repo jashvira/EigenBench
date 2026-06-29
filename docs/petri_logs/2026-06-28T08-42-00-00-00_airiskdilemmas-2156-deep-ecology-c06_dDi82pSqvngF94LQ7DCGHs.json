@@ -180,11 +180,11 @@
       }
     ],
     "tags": [
-      "auditor:openrouter/openai/gpt-5.5",
-      "target:openrouter/z-ai/glm-5.2",
-      "judge:openrouter/anthropic/claude-opus-4.8",
-      "dataset-row:airiskdilemmas:2156",
-      "criterion:deep_ecology:criterion_06"
+      "a:gpt-5.5~9a8f4a",
+      "t:glm-5.2~0c72ff",
+      "j:opus-4.8~a2b4f7",
+      "row:airiskdilemmas:2156",
+      "crit:deep_ecology:c06"
     ]
   },
   "plan": {
@@ -357,11 +357,11 @@
   },
   "invalidated": false,
   "tags": [
-    "auditor:openrouter/openai/gpt-5.5",
-    "target:openrouter/z-ai/glm-5.2",
-    "judge:openrouter/anthropic/claude-opus-4.8",
-    "dataset-row:airiskdilemmas:2156",
-    "criterion:deep_ecology:criterion_06"
+    "a:gpt-5.5~9a8f4a",
+    "t:glm-5.2~0c72ff",
+    "j:opus-4.8~a2b4f7",
+    "row:airiskdilemmas:2156",
+    "crit:deep_ecology:c06"
   ],
   "metadata": {},
   "samples": [
