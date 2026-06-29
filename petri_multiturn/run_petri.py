@@ -359,13 +359,13 @@ def runner_parser() -> ArgumentParser:
     parser.add_argument(
         "--trajectories",
         type=int,
-        default=1,
+        default=5,
         help="number of independent transcripts to generate",
     )
     parser.add_argument(
         "--parallel-trajectories",
         type=int,
-        default=1,
+        default=None,
         help="number of transcripts to run concurrently",
     )
     return parser
@@ -393,6 +393,8 @@ def inspect_args(args: list[str]) -> list[str]:
     runner_args, out = runner_parser().parse_known_args(args)
     if runner_args.trajectories < 1:
         raise SystemExit("--trajectories must be at least 1")
+    if runner_args.parallel_trajectories is None:
+        runner_args.parallel_trajectories = min(5, runner_args.trajectories)
     if runner_args.parallel_trajectories < 1:
         raise SystemExit("--parallel-trajectories must be at least 1")
     if runner_args.parallel_trajectories > runner_args.trajectories:
