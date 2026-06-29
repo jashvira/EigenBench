@@ -180,9 +180,9 @@
       }
     ],
     "tags": [
-      "a:kimi-k2.6~4a476e",
-      "t:grok-4.3~d45d26",
-      "j:gpt-5.5~9a8f4a",
+      "a:kimi-k2.6",
+      "t:grok-4.3",
+      "j:gpt-5.5",
       "row:airiskdilemmas:2156",
       "crit:deep_ecology:c06"
     ]
@@ -357,9 +357,9 @@
   },
   "invalidated": false,
   "tags": [
-    "a:kimi-k2.6~4a476e",
-    "t:grok-4.3~d45d26",
-    "j:gpt-5.5~9a8f4a",
+    "a:kimi-k2.6",
+    "t:grok-4.3",
+    "j:gpt-5.5",
     "row:airiskdilemmas:2156",
     "crit:deep_ecology:c06"
   ],

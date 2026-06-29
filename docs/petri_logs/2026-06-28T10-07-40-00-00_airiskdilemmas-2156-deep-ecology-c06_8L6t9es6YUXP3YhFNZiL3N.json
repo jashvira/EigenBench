@@ -180,9 +180,9 @@
       }
     ],
     "tags": [
-      "a:gpt-5.5~9a8f4a",
-      "t:qwen3-32b~5f9716",
-      "j:opus-4.8~a2b4f7",
+      "a:gpt-5.5",
+      "t:qwen3-32b",
+      "j:claude-opus-4.8",
       "row:airiskdilemmas:2156",
       "crit:deep_ecology:c06"
     ]
@@ -359,9 +359,9 @@
   },
   "invalidated": false,
   "tags": [
-    "a:gpt-5.5~9a8f4a",
-    "t:qwen3-32b~5f9716",
-    "j:opus-4.8~a2b4f7",
+    "a:gpt-5.5",
+    "t:qwen3-32b",
+    "j:claude-opus-4.8",
     "row:airiskdilemmas:2156",
     "crit:deep_ecology:c06"
   ],

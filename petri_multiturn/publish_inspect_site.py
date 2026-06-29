@@ -310,11 +310,26 @@ def patch_viewer_columns(asset_path: Path) -> None:
     text = asset_path.read_text(encoding="utf-8")
     text = replace_once(
         text,
+        '\t\t} else {\n'
+        '\t\t\tconst nameIdx = allCols.findIndex((col) => col.field === "name");',
+        '\t\t} else {\n'
+        '\t\t\tconst tagsIdx = allCols.findIndex((col) => col.field === "tags");\n'
+        "\t\t\tif (tagsIdx > 1) {\n"
+        "\t\t\t\tconst [tagsCol] = allCols.splice(tagsIdx, 1);\n"
+        "\t\t\t\tallCols.splice(1, 0, tagsCol);\n"
+        "\t\t\t}\n"
+        '\t\t\tconst nameIdx = allCols.findIndex((col) => col.field === "name");',
+        "tags first column",
+    )
+    text = replace_once(
+        text,
         "\t\tconst hidden = /* @__PURE__ */ new Set();\n"
         '\t\tif (mode === "tasks") {',
         "\t\tconst hidden = /* @__PURE__ */ new Set();\n"
         '\t\thidden.add("task");\n'
         '\t\thidden.add("taskArgs");\n'
+        '\t\thidden.add("name");\n'
+        '\t\thidden.add("status");\n'
         '\t\tif (mode === "tasks") {',
         "default hidden columns",
     )

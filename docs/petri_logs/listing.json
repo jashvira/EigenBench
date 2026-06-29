@@ -201,9 +201,9 @@
         }
       ],
       "tags": [
-        "a:gpt-5.5~9a8f4a",
-        "t:qwen3-32b~5f9716",
-        "j:opus-4.8~a2b4f7",
+        "a:gpt-5.5",
+        "t:qwen3-32b",
+        "j:claude-opus-4.8",
         "row:airiskdilemmas:2156",
         "crit:deep_ecology:c06"
       ]
@@ -287,9 +287,9 @@
       "connection_limit_history": []
     },
     "tags": [
-      "a:gpt-5.5~9a8f4a",
-      "t:qwen3-32b~5f9716",
-      "j:opus-4.8~a2b4f7",
+      "a:gpt-5.5",
+      "t:qwen3-32b",
+      "j:claude-opus-4.8",
       "row:airiskdilemmas:2156",
       "crit:deep_ecology:c06"
     ]
@@ -496,9 +496,9 @@
         }
       ],
       "tags": [
-        "a:gpt-5.5~9a8f4a",
-        "t:glm-5.2~0c72ff",
-        "j:opus-4.8~a2b4f7",
+        "a:gpt-5.5",
+        "t:glm-5.2",
+        "j:claude-opus-4.8",
         "row:airiskdilemmas:2156",
         "crit:deep_ecology:c06"
       ]
@@ -580,9 +580,9 @@
       "connection_limit_history": []
     },
     "tags": [
-      "a:gpt-5.5~9a8f4a",
-      "t:glm-5.2~0c72ff",
-      "j:opus-4.8~a2b4f7",
+      "a:gpt-5.5",
+      "t:glm-5.2",
+      "j:claude-opus-4.8",
       "row:airiskdilemmas:2156",
       "crit:deep_ecology:c06"
     ]
@@ -789,9 +789,9 @@
         }
       ],
       "tags": [
-        "a:qwen3-32b~5f9716",
-        "t:glm-5.2~0c72ff",
-        "j:opus-4.8~a2b4f7",
+        "a:qwen3-32b",
+        "t:glm-5.2",
+        "j:claude-opus-4.8",
         "row:airiskdilemmas:2156",
         "crit:deep_ecology:c06"
       ]
@@ -875,9 +875,9 @@
       "connection_limit_history": []
     },
     "tags": [
-      "a:qwen3-32b~5f9716",
-      "t:glm-5.2~0c72ff",
-      "j:opus-4.8~a2b4f7",
+      "a:qwen3-32b",
+      "t:glm-5.2",
+      "j:claude-opus-4.8",
       "row:airiskdilemmas:2156",
       "crit:deep_ecology:c06"
     ]
@@ -1084,9 +1084,9 @@
         }
       ],
       "tags": [
-        "a:qwen3-32b~5f9716",
-        "t:glm-5.2~0c72ff",
-        "j:opus-4.8~a2b4f7",
+        "a:qwen3-32b",
+        "t:glm-5.2",
+        "j:claude-opus-4.8",
         "row:airiskdilemmas:2156",
         "crit:deep_ecology:c06"
       ]
@@ -1170,9 +1170,9 @@
       "connection_limit_history": []
     },
     "tags": [
-      "a:qwen3-32b~5f9716",
-      "t:glm-5.2~0c72ff",
-      "j:opus-4.8~a2b4f7",
+      "a:qwen3-32b",
+      "t:glm-5.2",
+      "j:claude-opus-4.8",
       "row:airiskdilemmas:2156",
       "crit:deep_ecology:c06"
     ]
@@ -1379,9 +1379,9 @@
         }
       ],
       "tags": [
-        "a:gpt-5.5~9a8f4a",
-        "t:glm-5.2~0c72ff",
-        "j:opus-4.8~a2b4f7",
+        "a:gpt-5.5",
+        "t:glm-5.2",
+        "j:claude-opus-4.8",
         "row:airiskdilemmas:2156",
         "crit:deep_ecology:c06"
       ]
@@ -1465,9 +1465,9 @@
       "connection_limit_history": []
     },
     "tags": [
-      "a:gpt-5.5~9a8f4a",
-      "t:glm-5.2~0c72ff",
-      "j:opus-4.8~a2b4f7",
+      "a:gpt-5.5",
+      "t:glm-5.2",
+      "j:claude-opus-4.8",
       "row:airiskdilemmas:2156",
       "crit:deep_ecology:c06"
     ]
@@ -1674,9 +1674,9 @@
         }
       ],
       "tags": [
-        "a:qwen3-32b~5f9716",
-        "t:grok-4.3~d45d26",
-        "j:gpt-5.5~9a8f4a",
+        "a:qwen3-32b",
+        "t:grok-4.3",
+        "j:gpt-5.5",
         "row:airiskdilemmas:2156",
         "crit:deep_ecology:c06"
       ]
@@ -1758,9 +1758,9 @@
       "connection_limit_history": []
     },
     "tags": [
-      "a:qwen3-32b~5f9716",
-      "t:grok-4.3~d45d26",
-      "j:gpt-5.5~9a8f4a",
+      "a:qwen3-32b",
+      "t:grok-4.3",
+      "j:gpt-5.5",
       "row:airiskdilemmas:2156",
       "crit:deep_ecology:c06"
     ]
@@ -1967,9 +1967,9 @@
         }
       ],
       "tags": [
-        "a:kimi-k2.6~4a476e",
-        "t:grok-4.3~d45d26",
-        "j:gpt-5.5~9a8f4a",
+        "a:kimi-k2.6",
+        "t:grok-4.3",
+        "j:gpt-5.5",
         "row:airiskdilemmas:2156",
         "crit:deep_ecology:c06"
       ]
@@ -2051,9 +2051,9 @@
       "connection_limit_history": []
     },
     "tags": [
-      "a:kimi-k2.6~4a476e",
-      "t:grok-4.3~d45d26",
-      "j:gpt-5.5~9a8f4a",
+      "a:kimi-k2.6",
+      "t:grok-4.3",
+      "j:gpt-5.5",
       "row:airiskdilemmas:2156",
       "crit:deep_ecology:c06"
     ]
@@ -2260,9 +2260,9 @@
         }
       ],
       "tags": [
-        "a:qwen3-32b~5f9716",
-        "t:grok-4.3~d45d26",
-        "j:gpt-5.5~9a8f4a",
+        "a:qwen3-32b",
+        "t:grok-4.3",
+        "j:gpt-5.5",
         "row:airiskdilemmas:2156",
         "crit:deep_ecology:c06"
       ]
@@ -2344,9 +2344,9 @@
       "connection_limit_history": []
     },
     "tags": [
-      "a:qwen3-32b~5f9716",
-      "t:grok-4.3~d45d26",
-      "j:gpt-5.5~9a8f4a",
+      "a:qwen3-32b",
+      "t:grok-4.3",
+      "j:gpt-5.5",
       "row:airiskdilemmas:2156",
       "crit:deep_ecology:c06"
     ]
@@ -2553,9 +2553,9 @@
         }
       ],
       "tags": [
-        "a:gpt-5.5~9a8f4a",
-        "t:grok-4.3~d45d26",
-        "j:gpt-5.5-pro~cd6478",
+        "a:gpt-5.5",
+        "t:grok-4.3",
+        "j:gpt-5.5-pro",
         "row:airiskdilemmas:2156",
         "crit:deep_ecology:c06"
       ]
@@ -2637,9 +2637,9 @@
       "connection_limit_history": []
     },
     "tags": [
-      "a:gpt-5.5~9a8f4a",
-      "t:grok-4.3~d45d26",
-      "j:gpt-5.5-pro~cd6478",
+      "a:gpt-5.5",
+      "t:grok-4.3",
+      "j:gpt-5.5-pro",
       "row:airiskdilemmas:2156",
       "crit:deep_ecology:c06"
     ]

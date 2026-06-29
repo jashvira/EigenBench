@@ -68646,6 +68646,11 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 				return (aIdx >= 0 ? aIdx : tasksFieldOrder.length) - (bIdx >= 0 ? bIdx : tasksFieldOrder.length);
 			});
 		} else {
+			const tagsIdx = allCols.findIndex((col) => col.field === "tags");
+			if (tagsIdx > 1) {
+				const [tagsCol] = allCols.splice(tagsIdx, 1);
+				allCols.splice(1, 0, tagsCol);
+			}
 			const nameIdx = allCols.findIndex((col) => col.field === "name");
 			if (nameIdx > 1) {
 				const [nameCol] = allCols.splice(nameIdx, 1);
@@ -68670,6 +68675,8 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 		const hidden = /* @__PURE__ */ new Set();
 		hidden.add("task");
 		hidden.add("taskArgs");
+		hidden.add("name");
+		hidden.add("status");
 		if (mode === "tasks") {
 			hidden.add("sandbox");
 			hidden.add("taskFile");

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import re
 from collections.abc import Iterable, Mapping
 from pathlib import Path
@@ -45,14 +44,7 @@ def canonical_model_id(model: str) -> str:
 
 
 def model_tag(model: str) -> str:
-    canonical = canonical_model_id(model)
-    name = canonical.rsplit("/", 1)[-1]
-    if name.startswith("claude-sonnet-"):
-        name = f"sonnet-{name.removeprefix('claude-sonnet-')}"
-    elif name.startswith("claude-opus-"):
-        name = f"opus-{name.removeprefix('claude-opus-')}"
-    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:6]
-    return f"{slug(name)}~{digest}"
+    return canonical_model_id(model).rsplit("/", 1)[-1]
 
 
 def run_tags(

@@ -180,9 +180,9 @@
       }
     ],
     "tags": [
-      "a:gpt-5.5~9a8f4a",
-      "t:glm-5.2~0c72ff",
-      "j:opus-4.8~a2b4f7",
+      "a:gpt-5.5",
+      "t:glm-5.2",
+      "j:claude-opus-4.8",
       "row:airiskdilemmas:2156",
       "crit:deep_ecology:c06"
     ]
@@ -359,9 +359,9 @@
   },
   "invalidated": false,
   "tags": [
-    "a:gpt-5.5~9a8f4a",
-    "t:glm-5.2~0c72ff",
-    "j:opus-4.8~a2b4f7",
+    "a:gpt-5.5",
+    "t:glm-5.2",
+    "j:claude-opus-4.8",
     "row:airiskdilemmas:2156",
     "crit:deep_ecology:c06"
   ],

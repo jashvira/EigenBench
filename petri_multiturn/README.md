@@ -36,8 +36,7 @@ constitution, and criterion, e.g. `airiskdilemmas_1307_conservatism_c05`.
 
 Each run is tagged with compact filters: `a:<model>`, `t:<model>`,
 `j:<model>`, `row:<dataset>:<index>`, and `crit:<constitution>:<criterion>`.
-Model tags use a readable leaf plus a stable hash of the canonical model id,
-e.g. `t:qwen3-32b~abc123`.
+Model tags use the model name only, e.g. `t:qwen3-32b`.
 
 Defaults: `max_turns=6`, JSON logs under
 `runs/petri_multiturn/{constitution}_cNN/a-..._t-..._j-.../logs`, rollback off,
