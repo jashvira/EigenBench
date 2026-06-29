@@ -1,4 +1,4 @@
-"""Build the raw-criteria baseline corpus for the scenario classifier."""
+"""Build the raw-criteria retrieval corpus for the scenario classifier."""
 
 from __future__ import annotations
 
@@ -18,12 +18,20 @@ PUBLIC_CONSTITUTIONS = (
     "deep_ecology",
 )
 PRIVATE_ANCHORS_DIR = DATA_ROOT / "private_anchors"
-VERSION = "raw-v0.1"
+VERSION = "raw-v0.2"
+CRITERION_PREFIX_RE = re.compile(
+    r"^\s*Criterion\s+\d+\s*(?:for\s+[^:]+?)?(?:\s+is)?\s*:\s*",
+    flags=re.IGNORECASE,
+)
+COMPARATIVE_PREFIX_RE = re.compile(
+    r"^\s*prefer(?:s)?\s+(?:the\s+)?(?:assistant\s+)?(?:response|answer|reply)s?\s+(?:that|which|whose)\b[,\s]*",
+    flags=re.IGNORECASE,
+)
 
 
-def criterion_number(text: str, fallback: int) -> int:
+def criterion_number(text: str, source_order: int) -> int:
     match = re.match(r"\s*Criterion\s+(\d+)\b", text, flags=re.IGNORECASE)
-    return int(match.group(1)) if match else fallback
+    return int(match.group(1)) if match else source_order
 
 
 def sha256_bytes(path: Path) -> str:
@@ -44,8 +52,24 @@ def load_criteria(path: Path) -> list[str]:
         criteria = None
 
     if not isinstance(criteria, list) or not all(isinstance(item, str) for item in criteria):
-        raise ValueError(f"{path} must contain a criteria list")
+        if not isinstance(criteria, list) or not all(
+            isinstance(item, dict) and isinstance(item.get("comparative"), str)
+            for item in criteria
+        ):
+            raise ValueError(f"{path} must contain a criteria list")
+        return [item["comparative"] for item in criteria]
     return criteria
+
+
+def embedding_text_from_criterion(text: str) -> str:
+    """Return only the criterion wording used for retrieval embeddings.
+
+    Source files may label criteria as `Criterion 4 for Kindness:` and phrase
+    them as `prefer the response that ...`. Those wrappers are evaluation
+    syntax, not the criterion content we want in the vector.
+    """
+    text = CRITERION_PREFIX_RE.sub("", text, count=1).strip()
+    return COMPARATIVE_PREFIX_RE.sub("", text, count=1).strip()
 
 
 def constitution_paths() -> list[tuple[str, Path]]:
@@ -73,7 +97,7 @@ def build_units() -> list[dict[str, Any]]:
                     "criterion_index": criterion_index,
                     "source_order": source_order,
                     "criterion_text": criterion_text,
-                    "embedding_text": criterion_text,
+                    "embedding_text": embedding_text_from_criterion(criterion_text),
                     "source_path": str(path.relative_to(REPO_ROOT)),
                     "source_sha256": source_sha,
                     "criterion_sha256": sha256_text(criterion_text),
@@ -104,7 +128,7 @@ def write_manifest(path: Path, rows: list[dict[str, Any]]) -> None:
         "row_count": len(rows),
         "constitution_count": len(counts),
         "counts_by_constitution": dict(sorted(counts.items())),
-        "embedding_text_policy": "exact source criterion string",
+        "embedding_text_policy": "criterion wording only; Criterion N / constitution prefixes and prefer-the-response wrappers stripped",
         "sources": dict(sorted(sources.items())),
     }
     path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

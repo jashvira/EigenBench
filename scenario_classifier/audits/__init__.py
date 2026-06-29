@@ -1,1 +1,1 @@
-"""Runnable OASST and AIRisk audit scripts."""
+"""Runnable retrieval and comparison scripts."""

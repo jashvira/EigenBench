@@ -4,13 +4,13 @@ This folder is the local, ignored data home for Project 1 scenario-classifier wo
 
 Expected structure:
 
-- `scenarios/`: OASST, AIRisk, Reddit, and WildChat scenario JSON files.
-- `corpora/criteria_cards/`: criteria-card and raw-criteria retrieval corpora.
+- `scenarios/`: local scenario JSON files; current labelled work uses AIRisk.
+- `corpora/retrieval_units/`: raw-criteria retrieval corpora plus optional criteria-card files.
 - `private_anchors/`: optional ignored local anchor JSON files included by the raw-criteria builder.
 - `valuearena/processed/`: processed ValueArena tie-rate tables.
 - `labels/constitution_matches/`: AIRisk scenario-to-constitution review labels and batch inputs.
-- `outputs/embedding_audit/`: embedding vectors, manifests, and retrieval rows.
-- `outputs/router_audit/`: BM25 audit outputs.
+- `outputs/embedding_retrieval/`: embedding vectors, manifests, and retrieval rows.
+- `outputs/bm25_retrieval/`: BM25 retrieval rows and summaries.
 - `outputs/airiskdilemmas_623_stats/`: AIRisk subset statistics.
 
 Payload files are intentionally ignored. Keep source/code here, not private datasets or generated caches.

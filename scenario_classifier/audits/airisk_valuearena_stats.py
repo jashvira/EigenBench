@@ -19,7 +19,7 @@ from scenario_classifier.core.io import DEFAULT_AIRISK_SCENARIOS, OUTPUT_ROOT, R
 
 
 DEFAULT_INPUT = VALUEARENA_ROOT / "processed" / "scenario_criterion_tie_rates.csv"
-DEFAULT_SCENARIOS = DEFAULT_AIRISK_SCENARIOS
+DEFAULT_INPUT_SCENARIOS = DEFAULT_AIRISK_SCENARIOS
 DEFAULT_OUTPUT_DIR = OUTPUT_ROOT / "airiskdilemmas_623_stats"
 
 
@@ -275,7 +275,7 @@ def parse_args() -> argparse.Namespace:
     """Parse input/output paths."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
-    parser.add_argument("--scenarios", type=Path, default=DEFAULT_SCENARIOS)
+    parser.add_argument("--scenarios", type=Path, default=DEFAULT_INPUT_SCENARIOS)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     return parser.parse_args()
 

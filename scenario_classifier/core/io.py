@@ -16,10 +16,9 @@ CORPORA_ROOT = DATA_ROOT / "corpora"
 LABELS_ROOT = DATA_ROOT / "labels"
 VALUEARENA_ROOT = DATA_ROOT / "valuearena"
 
-DEFAULT_SCENARIOS = SCENARIOS_ROOT / "oasst_questions.json"
 DEFAULT_AIRISK_SCENARIOS = SCENARIOS_ROOT / "airiskdilemmas.json"
-DEFAULT_CARD_CORPUS = CORPORA_ROOT / "criteria_cards" / "criteria_cards_local_anchors_v0_4.jsonl"
-DEFAULT_RAW_CORPUS = CORPORA_ROOT / "criteria_cards" / "raw_criteria_embedding_units_local_anchors_v0_1.jsonl"
+DEFAULT_CARD_CORPUS = CORPORA_ROOT / "retrieval_units" / "criteria_cards_local_anchors_v0_4.jsonl"
+DEFAULT_RAW_CORPUS = CORPORA_ROOT / "retrieval_units" / "raw_criteria_embedding_units_local_anchors_v0_2.jsonl"
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -28,9 +27,43 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
         return [json.loads(line) for line in f if line.strip()]
 
 
-def load_scenarios(path: Path) -> list[str]:
-    """Load a scenario JSON list."""
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(payload, list) or not all(isinstance(item, str) for item in payload):
-        raise ValueError(f"{path} must contain a JSON list of strings")
-    return payload
+def load_records(
+    path: Path,
+    *,
+    scenario_field: str = "scenario",
+    index_field: str = "scenario_index",
+    label_field: str = "primary_constitution",
+    confidence_field: str = "confidence",
+) -> list[dict[str, Any]]:
+    """Load either a JSON list of scenario strings or JSON/JSONL records."""
+    text = path.read_text(encoding="utf-8").strip()
+    payload: Any
+    if text.startswith("["):
+        payload = json.loads(text)
+    else:
+        payload = load_jsonl(path)
+
+    if not isinstance(payload, list):
+        raise ValueError(f"{path} must contain a JSON list or JSONL rows")
+
+    rows: list[dict[str, Any]] = []
+    for idx, item in enumerate(payload):
+        if isinstance(item, str):
+            rows.append({"scenario_index": idx, "scenario": item})
+            continue
+        if not isinstance(item, dict) or not isinstance(item.get(scenario_field), str):
+            raise ValueError(f"{path} row {idx} must be a scenario string or object with {scenario_field!r}")
+
+        row = {
+            "scenario_index": item.get(index_field, idx),
+            "scenario": item[scenario_field],
+        }
+        label = item.get(label_field, item.get("annotation_primary"))
+        confidence = item.get(confidence_field, item.get("annotation_confidence"))
+        if label is not None:
+            row["annotation_primary"] = label
+        if confidence is not None:
+            row["annotation_confidence"] = confidence
+        rows.append(row)
+
+    return rows
