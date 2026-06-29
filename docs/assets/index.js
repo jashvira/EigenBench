@@ -68677,6 +68677,7 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 		hidden.add("taskArgs");
 		hidden.add("name");
 		hidden.add("status");
+		hidden.add("model");
 		if (mode === "tasks") {
 			hidden.add("sandbox");
 			hidden.add("taskFile");

@@ -330,6 +330,7 @@ def patch_viewer_columns(asset_path: Path) -> None:
         '\t\thidden.add("taskArgs");\n'
         '\t\thidden.add("name");\n'
         '\t\thidden.add("status");\n'
+        '\t\thidden.add("model");\n'
         '\t\tif (mode === "tasks") {',
         "default hidden columns",
     )
