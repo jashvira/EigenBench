@@ -1,24 +1,391 @@
 <!doctype html>
-<html lang="en" data-bs-theme="light">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,noai,noimageai" />
-    <title>Inspect View</title>
-    <link rel="icon" href="./assets/favicon.svg" />
+    <title>EigenBench Petri Probe Logs</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101113;
+        --panel: #17191c;
+        --panel-2: #1d2024;
+        --text: #f0f0ed;
+        --muted: #a9aaa7;
+        --line: #30343a;
+        --accent: #58c4dd;
+        --warn: #e2c568;
+        --good: #53b778;
+      }
 
-    <script>"use strict";(()=>{var p=["system","light","dark","readable-system","readable-light","readable-dark"],h=e=>p.includes(e),m=(e,t)=>{try{let a=e.getItem(t);if(!a)return"readable-system";let r=JSON.parse(a);if(r&&typeof r=="object"&&"state"in r){let n=r.state;if(n&&typeof n=="object"&&"themePreference"in n){let s=n.themePreference;if(h(s))return s}}return"readable-system"}catch{return"readable-system"}};var l=e=>{let t=e.startsWith("readable-")?"readable":"default";return{isDark:e==="dark"||e.endsWith("-dark"),variant:t}},b=e=>{if(e.isVscodeWebview){if(e.preference==="readable-light"||e.preference==="readable-dark"||e.preference==="readable-system"||!e.explicitParam){let s=y();return{kind:"apply-variant-only",variant:e.preference.startsWith("readable-")?"readable":"default",hostIsDark:s}}let n=l(e.explicitParam);return{kind:"apply",isDark:n.isDark,variant:n.variant,toggleBodyClass:!1}}let t;e.preference!=="system"&&e.preference!=="readable-system"?t=e.preference:e.explicitParam?t=e.explicitParam:t=e.prefersDark?"dark":"light",e.preference==="readable-system"&&!t.startsWith("readable-")&&(t=`readable-${t}`);let{isDark:a,variant:r}=l(t);return{kind:"apply",isDark:a,variant:r,toggleBodyClass:!0}},o=null,i=!1,d=!1,y=()=>{if(typeof document>"u"||!document.body)return null;let e=document.body.classList;return e.contains("vscode-high-contrast-light")?!1:e.contains("vscode-high-contrast")||e.contains("vscode-dark")?!0:e.contains("vscode-light")?!1:null},k=()=>typeof window.acquireVsCodeApi=="function",c=()=>{if(d||typeof MutationObserver>"u"||!document.body)return;d=!0;let e=document.body.className;new MutationObserver(()=>{document.body.className!==e&&(e=document.body.className,o?.())}).observe(document.body,{attributes:!0,attributeFilter:["class"]})},f=e=>{let t=()=>{c();let a=new URLSearchParams(window.location.search),r=b({preference:e.readPreference?e.readPreference():"system",explicitParam:a.get(e.queryParamName),isVscodeWebview:k(),prefersDark:window.matchMedia("(prefers-color-scheme: dark)").matches});r.kind==="apply-variant-only"?(r.variant==="readable"?document.documentElement.setAttribute("data-theme-variant","readable"):document.documentElement.removeAttribute("data-theme-variant"),r.hostIsDark!==null&&document.documentElement.setAttribute("data-bs-theme",r.hostIsDark?"dark":"light")):r.kind==="apply"&&(document.documentElement.setAttribute("data-bs-theme",r.isDark?"dark":"light"),r.variant==="readable"?document.documentElement.setAttribute("data-theme-variant","readable"):document.documentElement.removeAttribute("data-theme-variant"),r.toggleBodyClass&&document.body?.classList.toggle("vscode-dark",r.isDark))};return o=t,window.__APPLY_BROWSER_THEME__=t,i||(i=!0,window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>o?.())),c(),t};var u="inspect-view-user-settings";var v=f({queryParamName:"inspectLogviewThemeCategory",readPreference:()=>m(localStorage,u)});v();})();</script>
-    <script type="module" crossorigin src="./assets/index.js"></script>
-    <link rel="modulepreload" crossorigin href="./assets/jsx-runtime.js">
-    <link rel="modulepreload" crossorigin href="./assets/chunk-DfAF0w94.js">
-    <link rel="stylesheet" crossorigin href="./assets/index.css">
-    <script id="log_dir_context" type="application/json">{"log_dir": "logs", "abs_log_dir": "logs"}</script>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        font-size: 15px;
+        line-height: 1.45;
+      }
+
+      main {
+        width: min(1180px, calc(100vw - 48px));
+        margin: 0 auto;
+        padding: 44px 0 56px;
+      }
+
+      header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 28px;
+        align-items: start;
+        margin-bottom: 28px;
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: clamp(30px, 4vw, 52px);
+        line-height: 1.02;
+        letter-spacing: 0;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 780px;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      .button {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel-2);
+        color: var(--text);
+        padding: 9px 12px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .button.primary {
+        border-color: #2a7890;
+        background: #14313a;
+      }
+
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 22px;
+      }
+
+      .metric {
+        min-height: 92px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 14px 15px;
+      }
+
+      .metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 9px;
+        font-size: 22px;
+        line-height: 1.1;
+      }
+
+      .note {
+        display: grid;
+        grid-template-columns: 160px minmax(0, 1fr);
+        gap: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #141619;
+        padding: 14px 16px;
+        margin-bottom: 22px;
+      }
+
+      .note strong {
+        color: var(--warn);
+      }
+
+      .note p {
+        max-width: none;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1040px;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        background: #15171a;
+      }
+
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .model {
+        display: block;
+        max-width: 190px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .score {
+        color: var(--good);
+        font-weight: 750;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .links {
+        display: flex;
+        gap: 10px;
+        white-space: nowrap;
+      }
+
+      .error {
+        border-color: #6f3434;
+        color: #ffb9b9;
+      }
+
+      @media (max-width: 820px) {
+        main {
+          width: min(100% - 28px, 1180px);
+          padding-top: 28px;
+        }
+
+        header {
+          grid-template-columns: 1fr;
+        }
+
+        .actions {
+          justify-content: flex-start;
+        }
+
+        .summary {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .note {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
+  <body>
+    <main>
+      <header>
+        <section>
+          <h1>EigenBench Petri Probe Logs</h1>
+          <p>
+            Published probe-discovery transcripts for one AIRiskDilemmas scenario
+            against one constitution criterion. This page summarizes the current
+            hosted logs; Inspect remains available for full transcript reading.
+          </p>
+        </section>
+        <nav class="actions" aria-label="Links">
+          <a class="button primary" id="latest-link" href="viewer/#/logs">Latest transcript</a>
+          <a class="button" href="viewer/#/logs">Inspect log list</a>
+          <a class="button" href="logs/listing.json">Raw listing</a>
+          <a class="button" href="run-index.json">Run index JSON</a>
+        </nav>
+      </header>
 
-  <body style="min-width: 450px">
+      <section class="summary" aria-label="Summary">
+        <div class="metric">
+          <span>Scenario</span>
+          <strong id="scenario">-</strong>
+        </div>
+        <div class="metric">
+          <span>Criterion</span>
+          <strong id="criterion">-</strong>
+        </div>
+        <div class="metric">
+          <span>Runs</span>
+          <strong id="run-count">-</strong>
+        </div>
+        <div class="metric">
+          <span>Trajectories</span>
+          <strong id="trajectory-count">-</strong>
+        </div>
+        <div class="metric">
+          <span>Total tokens</span>
+          <strong id="total-tokens">-</strong>
+        </div>
+      </section>
+
+      <section class="note">
+        <strong>How to read this</strong>
+        <p>
+          A run is one Inspect log. Trajectories are the actual samples inside
+          that log: early runs have 1 trajectory, later batch runs have 5.
+          Token totals are read from each log's recorded model usage. Use this
+          table for run metadata; use Inspect to read transcripts.
+        </p>
+      </section>
+
+      <section class="table-wrap" aria-label="Runs">
+        <table>
+          <thead>
+            <tr>
+              <th>Started</th>
+              <th>Auditor</th>
+              <th>Target</th>
+              <th>Judge</th>
+              <th class="num">Traj.</th>
+              <th class="num">Probe quality</th>
+              <th class="num">Tokens</th>
+              <th class="num">Duration</th>
+              <th>Open</th>
+            </tr>
+          </thead>
+          <tbody id="runs">
+            <tr>
+              <td colspan="9" class="muted">Loading run index...</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
     <script>
-      window.__APPLY_BROWSER_THEME__?.();
+      const number = new Intl.NumberFormat("en-US");
+      const date = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "UTC",
+        timeZoneName: "short",
+      });
+
+      function text(id, value) {
+        document.getElementById(id).textContent = value;
+      }
+
+      function duration(seconds) {
+        if (seconds == null) return "-";
+        const minutes = Math.floor(seconds / 60);
+        const rest = seconds % 60;
+        return `${minutes}m ${String(rest).padStart(2, "0")}s`;
+      }
+
+      function score(value) {
+        return value == null ? "-" : Number(value).toFixed(1);
+      }
+
+      function model(value) {
+        return value || "-";
+      }
+
+      function render(data) {
+        text("scenario", data.scenario || "-");
+        text("criterion", `${data.constitution || "-"} ${data.criterion_id || ""}`.trim());
+        text("run-count", number.format(data.run_count || 0));
+        text("trajectory-count", number.format(data.trajectory_count || 0));
+        text("total-tokens", number.format(data.total_tokens || 0));
+
+        const rows = data.runs.map((run) => {
+          const started = run.started_at ? date.format(new Date(run.started_at)) : "-";
+          return `
+            <tr>
+              <td>${started}</td>
+              <td><span class="model" title="${model(run.auditor)}">${model(run.auditor_label)}</span></td>
+              <td><span class="model" title="${model(run.target)}">${model(run.target_label)}</span></td>
+              <td><span class="model" title="${model(run.judge)}">${model(run.judge_label)}</span></td>
+              <td class="num">${number.format(run.trajectories || 0)}</td>
+              <td class="num score">${score(run.score)}</td>
+              <td class="num">${number.format(run.total_tokens || 0)}</td>
+              <td class="num">${duration(run.duration_seconds)}</td>
+              <td>
+                <span class="links">
+                  <a href="${run.viewer_path}">Inspect</a>
+                  <a href="${run.raw_path}">JSON</a>
+                </span>
+              </td>
+            </tr>`;
+        });
+        document.getElementById("runs").innerHTML = rows.join("");
+        const latest = data.runs[0];
+        if (latest?.viewer_path) {
+          document.getElementById("latest-link").href = latest.viewer_path;
+        }
+      }
+
+      fetch(`run-index.json?v=${Date.now()}`)
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.json();
+        })
+        .then(render)
+        .catch((error) => {
+          document.getElementById("runs").innerHTML = `
+            <tr>
+              <td colspan="9" class="error">Could not load run-index.json: ${error.message}</td>
+            </tr>`;
+        });
     </script>
-    <div id="app"></div>
   </body>
 </html>
