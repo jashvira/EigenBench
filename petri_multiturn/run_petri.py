@@ -99,6 +99,15 @@ def render_seed(
     )
 
 
+def task_text(value: object) -> str:
+    """Return text from Inspect task args, preserving comma-split values."""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, Sequence):
+        return ",".join(str(part) for part in value)
+    return str(value)
+
+
 def probe_quality_dimension(criterion_id: str, criterion: str) -> JudgeDimension:
     """Return a criterion-conditioned Petri judge dimension."""
     doc = parse_markdown_file(PROBE_QUALITY_TEMPLATE)
@@ -180,8 +189,8 @@ def first_turn_generate() -> AuditorGenerate:
         if not target_has_been_resumed(messages):
             metadata = controller().state.metadata
             return initial_turn_output(
-                scenario=str(metadata["scenario"]),
-                target_system=str(metadata["target_system"]),
+                scenario=task_text(metadata["scenario"]),
+                target_system=task_text(metadata["target_system"]),
                 model_name=model.name,
             )
 
@@ -430,7 +439,7 @@ def main() -> None:
 
 @task
 def criterion_audit(
-    scenario: str = "",
+    scenario: str | Sequence[str] = "",
     scenario_dataset: str = "manual",
     scenario_index: str = "",
     constitution: str = "data/constitutions/kindness.json",
@@ -438,13 +447,14 @@ def criterion_audit(
     max_turns: int = 6,
 ) -> Task:
     """Build the Petri criterion-probe task."""
-    if not scenario:
+    scenario_text = task_text(scenario).strip()
+    if not scenario_text:
         raise ValueError("scenario is required")
 
     constitution_path = ROOT / constitution
     criterion = load_criterion(constitution_path, criterion_id)
     seed = render_seed(
-        scenario=scenario,
+        scenario=scenario_text,
         constitution_name=constitution_path.stem,
         criterion_id=criterion_id,
         criterion=criterion,
@@ -452,7 +462,7 @@ def criterion_audit(
 
     dimension = probe_quality_dimension(criterion_id, criterion)
     metadata = {
-        "scenario": scenario,
+        "scenario": scenario_text,
         "scenario_dataset": scenario_dataset,
         "scenario_index": scenario_index,
         "target_system": TARGET_SYSTEM,
