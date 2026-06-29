@@ -21,8 +21,8 @@ GENERATED_PREFIXES = (
 )
 
 
-def slug(value: str) -> str:
-    return re.sub(r"[^a-z0-9._-]+", "-", value.lower()).strip("-")
+def slug(value: object) -> str:
+    return re.sub(r"[^a-z0-9._-]+", "-", str(value).lower()).strip("-")
 
 
 def tag_component(value: str) -> str:
