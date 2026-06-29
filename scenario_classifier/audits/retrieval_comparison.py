@@ -1,4 +1,4 @@
-"""Build the labelled retrieval comparison table.
+"""Build a retrieval comparison table from a current annotation file.
 
 Raw criteria are the default report. Cards remain available via `--corpus cards`
 or `--corpus both`.
@@ -16,6 +16,7 @@ from typing import Any
 
 from scenario_classifier.core.io import DEFAULT_CARD_CORPUS, DEFAULT_RAW_CORPUS, OUTPUT_ROOT, load_jsonl
 from scenario_classifier.core.ranking_metrics import recall_at_k
+from scenario_classifier.retrieval.embedding_texts import format_card_document, format_raw_document, format_scenario_query
 from scenario_classifier.retrieval.retrievers import BM25Retriever
 
 
@@ -41,14 +42,6 @@ def wants_raw(corpus: str) -> bool:
     return corpus in {"raw", "both"}
 
 
-def card_text(doc: dict[str, Any]) -> str:
-    return str(doc.get("embedding_text") or doc.get("claim") or "")
-
-
-def raw_text(doc: dict[str, Any]) -> str:
-    return str(doc.get("embedding_text") or doc.get("criterion_text") or "")
-
-
 def corpus_hash(texts: list[str]) -> str:
     """Hash corpus text in the same order used for cached embeddings."""
     digest = hashlib.sha256()
@@ -58,7 +51,7 @@ def corpus_hash(texts: list[str]) -> str:
     return digest.hexdigest()
 
 
-def labelled_high_conf(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def annotated_high_conf(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Keep high-confidence rows with an assigned constitution."""
     return [
         row
@@ -81,12 +74,13 @@ def table_row(system: str, rows: list[dict[str, Any]], ranking_key: str) -> dict
     }
 
 
-def expected_corpus_hashes(corpus: str) -> dict[str, str]:
+def expected_corpus_hashes(model: str, corpus: str, output_name: str, rows: list[dict[str, Any]]) -> dict[str, str]:
     hashes: dict[str, str] = {}
+    hashes[output_name] = corpus_hash([format_scenario_query(model, row["scenario"]) for row in rows])
     if wants_cards(corpus):
-        hashes["cards"] = corpus_hash([card_text(doc) for doc in load_jsonl(DEFAULT_CARD_CORPUS)])
+        hashes["cards"] = corpus_hash([format_card_document(model, doc) for doc in load_jsonl(DEFAULT_CARD_CORPUS)])
     if wants_raw(corpus):
-        hashes["raw_criteria"] = corpus_hash([raw_text(doc) for doc in load_jsonl(DEFAULT_RAW_CORPUS)])
+        hashes["raw_criteria"] = corpus_hash([format_raw_document(model, doc) for doc in load_jsonl(DEFAULT_RAW_CORPUS)])
     return hashes
 
 
@@ -144,12 +138,12 @@ def build_table(args: argparse.Namespace) -> dict[str, Any]:
     """Build the retrieval comparison payload."""
     annotations = load_jsonl(args.annotations)
     table_rows: list[dict[str, Any]] = []
-    expected_hashes = expected_corpus_hashes(args.corpus)
     for model, _ in DEFAULT_MODELS:
+        expected_hashes = expected_corpus_hashes(model, args.corpus, args.output_name, annotations)
         check_embedding_cache(model, args.output_dir / slugify_model(model), expected_hashes)
 
     embedding_rows = {
-        label: labelled_high_conf(load_embedding_rows(model, args.output_dir, args.output_name))
+        label: annotated_high_conf(load_embedding_rows(model, args.output_dir, args.output_name))
         for model, label in DEFAULT_MODELS
     }
     if wants_cards(args.corpus):
@@ -161,7 +155,7 @@ def build_table(args: argparse.Namespace) -> dict[str, Any]:
             require_ranking(embedding_rows[label], "raw_top", label)
             table_rows.append(table_row(f"{label} raw criteria", embedding_rows[label], "raw_top"))
 
-    bm25 = labelled_high_conf(bm25_rows(annotations, top_k=max(KS), corpus=args.corpus))
+    bm25 = annotated_high_conf(bm25_rows(annotations, top_k=max(KS), corpus=args.corpus))
     if wants_cards(args.corpus):
         table_rows.append(table_row("BM25 cards", bm25, "card_top"))
     if wants_raw(args.corpus):
@@ -174,7 +168,7 @@ def build_table(args: argparse.Namespace) -> dict[str, Any]:
         "metric_definition": "Rank selected corpus units; recall@k is a hit if any of the first k retrieved units maps to the assigned constitution.",
         "ks": KS,
         "scenario_count": len(annotations),
-        "high_conf_labelled_count": len(embedding_rows["Gemini"]),
+        "high_conf_annotated_count": len(embedding_rows["Gemini"]),
         "rows": table_rows,
     }
 

@@ -19,6 +19,9 @@ import requests
 from scenario_classifier.core.io import DEFAULT_CARD_CORPUS, DEFAULT_RAW_CORPUS, OUTPUT_ROOT, REPO_ROOT
 from scenario_classifier.core.io import load_jsonl, load_records
 from scenario_classifier.core.ranking_metrics import recall_at_k
+from scenario_classifier.retrieval.embedding_texts import ASYMMETRIC_FORMAT_VERSION
+from scenario_classifier.retrieval.embedding_texts import format_card_document, format_raw_document
+from scenario_classifier.retrieval.embedding_texts import format_scenario_query
 from scenario_classifier.retrieval.retrievers import EmbeddingRetriever
 
 
@@ -52,16 +55,6 @@ def wants_cards(corpus: str) -> bool:
 def wants_raw(corpus: str) -> bool:
     """Return whether this run should include raw criteria."""
     return corpus in {"raw", "both"}
-
-
-def card_text(doc: dict[str, Any]) -> str:
-    """Return the text indexed for a compressed criteria card."""
-    return str(doc.get("embedding_text") or doc.get("claim") or "")
-
-
-def raw_text(doc: dict[str, Any]) -> str:
-    """Return the cleaned criterion words indexed for raw-criteria retrieval."""
-    return str(doc.get("embedding_text") or doc.get("criterion_text") or "")
 
 
 def corpus_hash(texts: list[str]) -> str:
@@ -186,19 +179,19 @@ def count_top_constitutions(rows: list[dict[str, Any]], key: str) -> dict[str, i
     return dict(sorted(Counter(row[key][0]["constitution"] for row in rows).items()))
 
 
-def add_label_metrics(summary: dict[str, Any], rows: list[dict[str, Any]], corpus: str) -> None:
-    """Add recall metrics when records contain reviewed constitution labels."""
+def add_annotation_metrics(summary: dict[str, Any], rows: list[dict[str, Any]], corpus: str) -> None:
+    """Add recall metrics when records contain current constitution annotations."""
     if not rows or "annotation_primary" not in rows[0]:
         return
 
     unit_ks = [1, 2, 3, 5, 10, 20]
     collapsed_ks = [1, 2, 3, 4, 5]
     high_conf_rows = [row for row in rows if row.get("annotation_confidence") == "high"]
-    high_conf_labelled = [row for row in high_conf_rows if row["annotation_primary"] != "none"]
+    high_conf_annotated = [row for row in high_conf_rows if row["annotation_primary"] != "none"]
 
     summary.update(
         {
-            "labelled_scenarios": sum(row["annotation_primary"] != "none" for row in rows),
+            "annotated_scenarios": sum(row["annotation_primary"] != "none" for row in rows),
             "annotation_primary_counts": dict(sorted(Counter(row["annotation_primary"] for row in rows).items())),
             "annotation_confidence_counts": dict(
                 sorted(Counter(row.get("annotation_confidence", "") for row in rows).items())
@@ -207,7 +200,7 @@ def add_label_metrics(summary: dict[str, Any], rows: list[dict[str, Any]], corpu
                 "unit_recall": "Rank selected corpus units; recall@k is a hit if any of the first k retrieved units maps to the assigned constitution.",
                 "collapsed_constitution_recall": "Rank selected corpus units, collapse to distinct constitutions preserving first occurrence, then compute recall@k over that constitution shortlist.",
             },
-            "high_conf_labelled_scenarios": len(high_conf_labelled),
+            "high_conf_annotated_scenarios": len(high_conf_annotated),
         }
     )
 
@@ -264,7 +257,7 @@ def run_model(
     include_raw = wants_raw(corpus)
     card_docs = load_jsonl(DEFAULT_CARD_CORPUS) if include_cards else []
     raw_docs = load_jsonl(DEFAULT_RAW_CORPUS) if include_raw else []
-    scenarios = [row["scenario"] for row in records]
+    scenarios = [format_scenario_query(model, row["scenario"]) for row in records]
 
     scenario_vectors = load_or_embed(
         model=model,
@@ -282,7 +275,7 @@ def run_model(
         card_vectors = load_or_embed(
             model=model,
             corpus_name="cards",
-            texts=[card_text(doc) for doc in card_docs],
+            texts=[format_card_document(model, doc) for doc in card_docs],
             api_key=api_key,
             batch_size=batch_size,
             force=force_corpora,
@@ -298,7 +291,7 @@ def run_model(
         raw_vectors = load_or_embed(
             model=model,
             corpus_name="raw_criteria",
-            texts=[raw_text(doc) for doc in raw_docs],
+            texts=[format_raw_document(model, doc) for doc in raw_docs],
             api_key=api_key,
             batch_size=batch_size,
             force=force_corpora,
@@ -327,6 +320,7 @@ def run_model(
         "dataset": output_name,
         "scenarios": len(records),
         "top_k": top_k,
+        "embedding_format": ASYMMETRIC_FORMAT_VERSION,
     }
     if include_cards and card_scores is not None:
         summary["cards"] = len(card_docs)
@@ -334,7 +328,7 @@ def run_model(
     if include_raw and raw_scores is not None:
         summary["raw_criteria"] = len(raw_docs)
         summary["raw_top_score_avg"] = round(float(raw_scores.max(axis=1).mean()), 6)
-    add_label_metrics(summary, rows, corpus)
+    add_annotation_metrics(summary, rows, corpus)
 
     write_jsonl(retrieval_jsonl, rows)
     write_csv(retrieval_csv, rows)
@@ -349,7 +343,7 @@ def parse_args() -> argparse.Namespace:
     """Parse CLI args for the generic runner."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--records", type=Path, required=True, help="JSON list or JSONL records containing scenarios")
-    parser.add_argument("--output-name", required=True, help="cache/output prefix, e.g. airisk_623")
+    parser.add_argument("--output-name", required=True, help="cache/output prefix, e.g. airiskdilemmas_full_2999")
     parser.add_argument("--model", action="append", default=[], help=f"default: {DEFAULT_MODEL}")
     parser.add_argument("--scenario-field", default="scenario")
     parser.add_argument("--index-field", default="scenario_index")

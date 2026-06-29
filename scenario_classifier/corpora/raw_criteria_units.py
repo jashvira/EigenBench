@@ -27,6 +27,7 @@ COMPARATIVE_PREFIX_RE = re.compile(
     r"^\s*prefer(?:s)?\s+(?:the\s+)?(?:assistant\s+)?(?:response|answer|reply)s?\s+(?:that|which|whose)\b[,\s]*",
     flags=re.IGNORECASE,
 )
+PLACEHOLDER_SUFFIX_RE = re.compile(r"\s*\(PLACEHOLDER\s+(?:\u2014|-)\s+misaligned anchor\)\s*$")
 
 
 def criterion_number(text: str, source_order: int) -> int:
@@ -69,7 +70,8 @@ def embedding_text_from_criterion(text: str) -> str:
     syntax, not the criterion content we want in the vector.
     """
     text = CRITERION_PREFIX_RE.sub("", text, count=1).strip()
-    return COMPARATIVE_PREFIX_RE.sub("", text, count=1).strip()
+    text = COMPARATIVE_PREFIX_RE.sub("", text, count=1).strip()
+    return PLACEHOLDER_SUFFIX_RE.sub("", text).strip()
 
 
 def constitution_paths() -> list[tuple[str, Path]]:
@@ -128,7 +130,7 @@ def write_manifest(path: Path, rows: list[dict[str, Any]]) -> None:
         "row_count": len(rows),
         "constitution_count": len(counts),
         "counts_by_constitution": dict(sorted(counts.items())),
-        "embedding_text_policy": "criterion wording only; Criterion N / constitution prefixes and prefer-the-response wrappers stripped",
+        "embedding_text_policy": "criterion wording only; Criterion N / constitution prefixes, prefer-the-response wrappers, and placeholder anchor suffixes stripped",
         "sources": dict(sorted(sources.items())),
     }
     path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

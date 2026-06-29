@@ -50,8 +50,8 @@ def recall_at_k(
     hit_mode: str = "unit",
 ) -> dict[str, float]:
     """Compute unit-level or collapsed-constitution recall@k."""
-    labelled = [row for row in rows if row[target_key] != "none"]
-    if not labelled:
+    annotated = [row for row in rows if row[target_key] != "none"]
+    if not annotated:
         return {f"recall@{k}": 0.0 for k in ks}
 
     if hit_mode == "unit":
@@ -63,7 +63,7 @@ def recall_at_k(
 
     return {
         f"recall@{k}": round(
-            sum(hit_fn(row[ranking_key], row[target_key], k) for row in labelled) / len(labelled),
+            sum(hit_fn(row[ranking_key], row[target_key], k) for row in annotated) / len(annotated),
             6,
         )
         for k in ks
