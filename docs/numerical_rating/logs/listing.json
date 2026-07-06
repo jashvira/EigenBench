@@ -1,0 +1,54 @@
+{
+  "2026-07-06T08-15-34-00-00_kindness-full8-glm-5-2_AtZUbH7Dhm5XMm3rCZ5AHP.json": {
+    "eval_id": "ZYFrHMc8WVwYVJ4bNzqXJn",
+    "run_id": "YHxX7mhW395vRZB7cUsYvN",
+    "task": "kindness_full8_glm_5_2",
+    "task_id": "AtZUbH7Dhm5XMm3rCZ5AHP",
+    "task_version": 0,
+    "version": 2,
+    "status": "success",
+    "invalidated": false,
+    "model": "openrouter/z-ai/glm-5.2",
+    "started_at": "",
+    "completed_at": ""
+  },
+  "2026-07-06T08-04-39-00-00_kindness-full8-fable-5_gq8PYvsRDkHSwAYFs4wyhr.json": {
+    "eval_id": "Rh9abTC6rPcaMhbfVbh3kz",
+    "run_id": "e9NVgQrVNxiRgcERVBaTT6",
+    "task": "kindness_full8_fable_5",
+    "task_id": "gq8PYvsRDkHSwAYFs4wyhr",
+    "task_version": 0,
+    "version": 2,
+    "status": "success",
+    "invalidated": false,
+    "model": "openrouter/anthropic/claude-fable-5",
+    "started_at": "",
+    "completed_at": ""
+  },
+  "2026-07-06T07-04-56-00-00_kindness-full8-gpt-5-5-pro_hur8huiwX5iTGqtybN2L9w.json": {
+    "eval_id": "YTDnrSNKy5Ki88EKBsgLW7",
+    "run_id": "T3t4AucJRnrfjTLGsKA4Tq",
+    "task": "kindness_full8_gpt_5_5_pro",
+    "task_id": "hur8huiwX5iTGqtybN2L9w",
+    "task_version": 0,
+    "version": 2,
+    "status": "success",
+    "invalidated": false,
+    "model": "openrouter/openai/gpt-5.5-pro",
+    "started_at": "",
+    "completed_at": ""
+  },
+  "2026-07-06T06-56-13-00-00_kindness-full8-opus-4-8_3v3FerNiFgWrhMcGYMzLiu.json": {
+    "eval_id": "L67woXTjYJf2ytMsAWGPQL",
+    "run_id": "9QTgcNwew7MgHSdKDcJUWw",
+    "task": "kindness_full8_opus_4_8",
+    "task_id": "3v3FerNiFgWrhMcGYMzLiu",
+    "task_version": 0,
+    "version": 2,
+    "status": "success",
+    "invalidated": false,
+    "model": "openrouter/anthropic/claude-opus-4.8",
+    "started_at": "",
+    "completed_at": ""
+  }
+}
