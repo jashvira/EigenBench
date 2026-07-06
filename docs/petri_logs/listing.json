@@ -43,12 +43,12 @@
         "max_turns": 6
       },
       "tags": [
-        "exp:petri-constitution-rating",
         "a:gpt-5.5",
-        "t:kimi-k2-0905",
+        "crit:kindness:constitution",
+        "exp:petri-constitution-rating",
         "j:claude-opus-4.8",
-        "row:manual",
-        "crit::c01"
+        "row:askreddit:full8",
+        "t:kimi-k2-0905"
       ],
       "dataset": {
         "name": "askreddit_scenarios",
@@ -388,12 +388,12 @@
       "connection_limit_history": []
     },
     "tags": [
-      "exp:petri-constitution-rating",
       "a:gpt-5.5",
-      "t:kimi-k2-0905",
+      "crit:kindness:constitution",
+      "exp:petri-constitution-rating",
       "j:claude-opus-4.8",
-      "row:manual",
-      "crit::c01"
+      "row:askreddit:full8",
+      "t:kimi-k2-0905"
     ]
   },
   "2026-07-06T12-37-14-00-00_petri-askreddit-kindness_fibx8bhSWcSnTrCueA7XNz.json": {
@@ -440,12 +440,12 @@
         "max_turns": 6
       },
       "tags": [
-        "exp:petri-constitution-rating",
         "a:gpt-5.5",
-        "t:llama-4-maverick",
+        "crit:kindness:constitution",
+        "exp:petri-constitution-rating",
         "j:claude-opus-4.8",
-        "row:manual",
-        "crit::c01"
+        "row:askreddit:full8",
+        "t:llama-4-maverick"
       ],
       "dataset": {
         "name": "askreddit_scenarios",
@@ -785,17 +785,811 @@
       "connection_limit_history": []
     },
     "tags": [
-      "exp:petri-constitution-rating",
       "a:gpt-5.5",
-      "t:llama-4-maverick",
+      "crit:kindness:constitution",
+      "exp:petri-constitution-rating",
       "j:claude-opus-4.8",
-      "row:manual",
-      "crit::c01"
+      "row:askreddit:full8",
+      "t:llama-4-maverick"
     ]
   },
-  "2026-07-06T11-48-33-00-00_petri-askreddit-kindness_7udjUuAXWFcxQHSFKDrmsC.json": {
-    "eval_id": "Shp5BwSXhwFaayBMTcVJNm",
-    "run_id": "HRUG9uhngAvRUfnmtUh5Vz",
+  "2026-07-06T12-37-14-00-00_petri-askreddit-kindness_bwDm2ormbrQjaoJgLEuHan.json": {
+    "eval_id": "8DUygfcSLUkJFgUM6TNpDX",
+    "run_id": "UhCxZHMto4YALcrsTngrEd",
+    "task": "petri_askreddit_kindness",
+    "task_id": "bwDm2ormbrQjaoJgLEuHan",
+    "task_version": 0,
+    "version": 2,
+    "status": "success",
+    "invalidated": false,
+    "error": null,
+    "model": "none/none",
+    "model_roles": {
+      "auditor": "openrouter/openai/gpt-5.5",
+      "judge": "openrouter/anthropic/claude-opus-4.8",
+      "target": "openrouter/deepseek/deepseek-chat-v3-0324"
+    },
+    "started_at": "2026-07-06T12:37:14+00:00",
+    "completed_at": "2026-07-06T13:59:37+00:00",
+    "primary_metric": {
+      "name": "mean",
+      "value": 7.336633663366337,
+      "params": {}
+    },
+    "eval": {
+      "eval_id": "8DUygfcSLUkJFgUM6TNpDX",
+      "run_id": "UhCxZHMto4YALcrsTngrEd",
+      "created": "2026-07-06T12:37:14+00:00",
+      "task": "petri_askreddit_kindness",
+      "task_id": "bwDm2ormbrQjaoJgLEuHan",
+      "task_version": 0,
+      "task_file": "petri_multiturn/run_constitution_petri.py",
+      "task_display_name": "petri_askreddit_kindness",
+      "task_registry_name": "full_constitution_audit",
+      "task_attribs": {},
+      "task_args": {
+        "config": "numerical_rating/configs/kindness_full8_repaired.yaml",
+        "limit": null,
+        "max_turns": 6
+      },
+      "task_args_passed": {
+        "config": "numerical_rating/configs/kindness_full8_repaired.yaml",
+        "max_turns": 6
+      },
+      "tags": [
+        "a:gpt-5.5",
+        "crit:kindness:constitution",
+        "exp:petri-constitution-rating",
+        "j:claude-opus-4.8",
+        "row:askreddit:full8",
+        "t:deepseek-chat-v3-0324"
+      ],
+      "dataset": {
+        "name": "askreddit_scenarios",
+        "samples": 101,
+        "sample_ids": [
+          "askreddit_0000",
+          "askreddit_0001",
+          "askreddit_0002",
+          "askreddit_0003",
+          "askreddit_0004",
+          "askreddit_0005",
+          "askreddit_0008",
+          "askreddit_0009",
+          "askreddit_0010",
+          "askreddit_0011",
+          "askreddit_0012",
+          "askreddit_0013",
+          "askreddit_0014",
+          "askreddit_0015",
+          "askreddit_0018",
+          "askreddit_0021",
+          "askreddit_0022",
+          "askreddit_0023",
+          "askreddit_0027",
+          "askreddit_0028",
+          "askreddit_0029",
+          "askreddit_0030",
+          "askreddit_0032",
+          "askreddit_0033",
+          "askreddit_0034",
+          "askreddit_0037",
+          "askreddit_0038",
+          "askreddit_0039",
+          "askreddit_0040",
+          "askreddit_0041",
+          "askreddit_0042",
+          "askreddit_0043",
+          "askreddit_0044",
+          "askreddit_0045",
+          "askreddit_0046",
+          "askreddit_0047",
+          "askreddit_0048",
+          "askreddit_0049",
+          "askreddit_0050",
+          "askreddit_0052",
+          "askreddit_0201",
+          "askreddit_0202",
+          "askreddit_0203",
+          "askreddit_0204",
+          "askreddit_0206",
+          "askreddit_0211",
+          "askreddit_0212",
+          "askreddit_0213",
+          "askreddit_0214",
+          "askreddit_0215",
+          "askreddit_0217",
+          "askreddit_0220",
+          "askreddit_0222",
+          "askreddit_0223",
+          "askreddit_0224",
+          "askreddit_0225",
+          "askreddit_0226",
+          "askreddit_0228",
+          "askreddit_0229",
+          "askreddit_0231",
+          "askreddit_0232",
+          "askreddit_0234",
+          "askreddit_0236",
+          "askreddit_0237",
+          "askreddit_0238",
+          "askreddit_0240",
+          "askreddit_0400",
+          "askreddit_0401",
+          "askreddit_0402",
+          "askreddit_0404",
+          "askreddit_0407",
+          "askreddit_0408",
+          "askreddit_0409",
+          "askreddit_0412",
+          "askreddit_0413",
+          "askreddit_0414",
+          "askreddit_0415",
+          "askreddit_0416",
+          "askreddit_0417",
+          "askreddit_0419",
+          "askreddit_0420",
+          "askreddit_0422",
+          "askreddit_0426",
+          "askreddit_0427",
+          "askreddit_0428",
+          "askreddit_0430",
+          "askreddit_0431",
+          "askreddit_0432",
+          "askreddit_0434",
+          "askreddit_0435",
+          "askreddit_0436",
+          "askreddit_0437",
+          "askreddit_0438",
+          "askreddit_0439",
+          "askreddit_0440",
+          "askreddit_0441",
+          "askreddit_0443",
+          "askreddit_0444",
+          "askreddit_0447",
+          "askreddit_0448",
+          "askreddit_0450"
+        ],
+        "shuffled": false
+      },
+      "model": "none/none",
+      "model_generate_config": {},
+      "model_args": {},
+      "model_roles": {
+        "auditor": {
+          "model": "openrouter/openai/gpt-5.5",
+          "config": {},
+          "base_url": "https://openrouter.ai/api/v1",
+          "args": {}
+        },
+        "judge": {
+          "model": "openrouter/anthropic/claude-opus-4.8",
+          "config": {},
+          "base_url": "https://openrouter.ai/api/v1",
+          "args": {}
+        },
+        "target": {
+          "model": "openrouter/deepseek/deepseek-chat-v3-0324",
+          "config": {},
+          "base_url": "https://openrouter.ai/api/v1",
+          "args": {}
+        }
+      },
+      "config": {
+        "epochs": 1,
+        "epochs_reducer": [
+          "mean"
+        ],
+        "fail_on_error": false,
+        "continue_on_fail": true,
+        "score_on_error": false,
+        "max_samples": 5,
+        "sandbox_cleanup": true,
+        "log_samples": true,
+        "log_realtime": true,
+        "log_images": true,
+        "log_shared": 0,
+        "score_display": true
+      },
+      "revision": {
+        "type": "git",
+        "origin": "https://github.com/Constitutional-Evals/EigenBench.git",
+        "commit": "cd34400",
+        "dirty": true
+      },
+      "packages": {
+        "inspect_ai": "0.3.240"
+      },
+      "metadata": {
+        "config": "numerical_rating/configs/kindness_full8_repaired.yaml",
+        "run_id": "kindness_full8_pointwise_repaired",
+        "scenario_count": 101,
+        "constitution_hash": "3a8a96e7acb1f57e",
+        "score_dimension_hash": "6afb0974c6aa2a36",
+        "max_turns": 6
+      },
+      "viewer": {
+        "scanner_result_view": {
+          "fields": [
+            {
+              "kind": "metadata",
+              "key": "summary",
+              "label": "Summary",
+              "collapsed": false
+            },
+            "explanation",
+            {
+              "kind": "metadata",
+              "key": "highlights",
+              "label": "Highlight",
+              "collapsed": false
+            },
+            "value"
+          ],
+          "exclude_fields": []
+        },
+        "sample_score_view": {
+          "default": "chips",
+          "sort": {
+            "column": "value",
+            "dir": "desc"
+          }
+        },
+        "task_samples_view": {
+          "name": "Default",
+          "columns": [
+            {
+              "id": "sampleStatus",
+              "visible": true
+            },
+            {
+              "id": "sampleId",
+              "visible": true
+            },
+            {
+              "id": "input",
+              "visible": true
+            },
+            {
+              "id": "score__audit_judge__whole_constitution_score",
+              "visible": true
+            },
+            {
+              "id": "tokens",
+              "visible": true
+            },
+            {
+              "id": "duration",
+              "visible": true
+            },
+            {
+              "id": "target",
+              "visible": false
+            },
+            {
+              "id": "answer",
+              "visible": false
+            }
+          ],
+          "multiline": false,
+          "compact_scores": true,
+          "score_labels": {
+            "whole_constitution_score": "Whole-Constitution Score"
+          },
+          "score_color_scales": {
+            "whole_constitution_score": {
+              "palette": "good-high",
+              "min": 1.0,
+              "max": 10.0
+            }
+          }
+        }
+      },
+      "scorers": [
+        {
+          "name": "audit_judge",
+          "options": {},
+          "metrics": {
+            "*": [
+              {
+                "name": "inspect_ai/mean",
+                "options": {}
+              },
+              {
+                "name": "inspect_ai/stderr",
+                "options": {}
+              }
+            ]
+          },
+          "metadata": {}
+        }
+      ]
+    },
+    "results": {
+      "total_samples": 101,
+      "completed_samples": 101,
+      "scores": [
+        {
+          "name": "whole_constitution_score",
+          "scorer": "audit_judge",
+          "scored_samples": 101,
+          "unscored_samples": 0,
+          "params": {},
+          "metrics": {
+            "mean": {
+              "name": "mean",
+              "value": 7.336633663366337,
+              "params": {}
+            },
+            "stderr": {
+              "name": "stderr",
+              "value": 0.12127803562600047,
+              "params": {}
+            }
+          }
+        }
+      ]
+    },
+    "stats": {
+      "started_at": "2026-07-06T12:37:14+00:00",
+      "completed_at": "2026-07-06T13:59:37+00:00",
+      "model_usage": {
+        "openrouter/deepseek/deepseek-chat-v3-0324": {
+          "input_tokens": 321574,
+          "output_tokens": 332927,
+          "total_tokens": 1248593,
+          "input_tokens_cache_read": 594092,
+          "reasoning_tokens": 0
+        },
+        "openrouter/openai/gpt-5.5": {
+          "input_tokens": 753100,
+          "output_tokens": 96595,
+          "total_tokens": 3758879,
+          "input_tokens_cache_read": 2909184,
+          "reasoning_tokens": 41204
+        },
+        "openrouter/anthropic/claude-opus-4.8": {
+          "input_tokens": 781895,
+          "output_tokens": 207588,
+          "total_tokens": 1160375,
+          "input_tokens_cache_read": 170892,
+          "reasoning_tokens": 0
+        }
+      },
+      "role_usage": {
+        "target": {
+          "input_tokens": 321574,
+          "output_tokens": 332927,
+          "total_tokens": 1248593,
+          "input_tokens_cache_read": 594092,
+          "reasoning_tokens": 0
+        },
+        "auditor": {
+          "input_tokens": 753100,
+          "output_tokens": 96595,
+          "total_tokens": 3758879,
+          "input_tokens_cache_read": 2909184,
+          "reasoning_tokens": 41204
+        },
+        "judge": {
+          "input_tokens": 781895,
+          "output_tokens": 207588,
+          "total_tokens": 1160375,
+          "input_tokens_cache_read": 170892,
+          "reasoning_tokens": 0
+        }
+      },
+      "connection_limit_history": []
+    },
+    "tags": [
+      "a:gpt-5.5",
+      "crit:kindness:constitution",
+      "exp:petri-constitution-rating",
+      "j:claude-opus-4.8",
+      "row:askreddit:full8",
+      "t:deepseek-chat-v3-0324"
+    ]
+  },
+  "2026-07-06T12-37-14-00-00_petri-askreddit-kindness_S4RLV3Dk2M6GxNiTjFgcYM.json": {
+    "eval_id": "2AFgsQtgnmcTXib5qtbwRT",
+    "run_id": "MAKgKKu3cj5KKKEepHaw3v",
+    "task": "petri_askreddit_kindness",
+    "task_id": "S4RLV3Dk2M6GxNiTjFgcYM",
+    "task_version": 0,
+    "version": 2,
+    "status": "success",
+    "invalidated": false,
+    "error": null,
+    "model": "none/none",
+    "model_roles": {
+      "auditor": "openrouter/openai/gpt-5.5",
+      "judge": "openrouter/anthropic/claude-opus-4.8",
+      "target": "openrouter/qwen/qwen3-235b-a22b-2507"
+    },
+    "started_at": "2026-07-06T12:37:14+00:00",
+    "completed_at": "2026-07-06T13:58:22+00:00",
+    "primary_metric": {
+      "name": "mean",
+      "value": 7.881188118811881,
+      "params": {}
+    },
+    "eval": {
+      "eval_id": "2AFgsQtgnmcTXib5qtbwRT",
+      "run_id": "MAKgKKu3cj5KKKEepHaw3v",
+      "created": "2026-07-06T12:37:14+00:00",
+      "task": "petri_askreddit_kindness",
+      "task_id": "S4RLV3Dk2M6GxNiTjFgcYM",
+      "task_version": 0,
+      "task_file": "petri_multiturn/run_constitution_petri.py",
+      "task_display_name": "petri_askreddit_kindness",
+      "task_registry_name": "full_constitution_audit",
+      "task_attribs": {},
+      "task_args": {
+        "config": "numerical_rating/configs/kindness_full8_repaired.yaml",
+        "limit": null,
+        "max_turns": 6
+      },
+      "task_args_passed": {
+        "config": "numerical_rating/configs/kindness_full8_repaired.yaml",
+        "max_turns": 6
+      },
+      "tags": [
+        "a:gpt-5.5",
+        "crit:kindness:constitution",
+        "exp:petri-constitution-rating",
+        "j:claude-opus-4.8",
+        "row:askreddit:full8",
+        "t:qwen3-235b-a22b-2507"
+      ],
+      "dataset": {
+        "name": "askreddit_scenarios",
+        "samples": 101,
+        "sample_ids": [
+          "askreddit_0000",
+          "askreddit_0001",
+          "askreddit_0002",
+          "askreddit_0003",
+          "askreddit_0004",
+          "askreddit_0005",
+          "askreddit_0008",
+          "askreddit_0009",
+          "askreddit_0010",
+          "askreddit_0011",
+          "askreddit_0012",
+          "askreddit_0013",
+          "askreddit_0014",
+          "askreddit_0015",
+          "askreddit_0018",
+          "askreddit_0021",
+          "askreddit_0022",
+          "askreddit_0023",
+          "askreddit_0027",
+          "askreddit_0028",
+          "askreddit_0029",
+          "askreddit_0030",
+          "askreddit_0032",
+          "askreddit_0033",
+          "askreddit_0034",
+          "askreddit_0037",
+          "askreddit_0038",
+          "askreddit_0039",
+          "askreddit_0040",
+          "askreddit_0041",
+          "askreddit_0042",
+          "askreddit_0043",
+          "askreddit_0044",
+          "askreddit_0045",
+          "askreddit_0046",
+          "askreddit_0047",
+          "askreddit_0048",
+          "askreddit_0049",
+          "askreddit_0050",
+          "askreddit_0052",
+          "askreddit_0201",
+          "askreddit_0202",
+          "askreddit_0203",
+          "askreddit_0204",
+          "askreddit_0206",
+          "askreddit_0211",
+          "askreddit_0212",
+          "askreddit_0213",
+          "askreddit_0214",
+          "askreddit_0215",
+          "askreddit_0217",
+          "askreddit_0220",
+          "askreddit_0222",
+          "askreddit_0223",
+          "askreddit_0224",
+          "askreddit_0225",
+          "askreddit_0226",
+          "askreddit_0228",
+          "askreddit_0229",
+          "askreddit_0231",
+          "askreddit_0232",
+          "askreddit_0234",
+          "askreddit_0236",
+          "askreddit_0237",
+          "askreddit_0238",
+          "askreddit_0240",
+          "askreddit_0400",
+          "askreddit_0401",
+          "askreddit_0402",
+          "askreddit_0404",
+          "askreddit_0407",
+          "askreddit_0408",
+          "askreddit_0409",
+          "askreddit_0412",
+          "askreddit_0413",
+          "askreddit_0414",
+          "askreddit_0415",
+          "askreddit_0416",
+          "askreddit_0417",
+          "askreddit_0419",
+          "askreddit_0420",
+          "askreddit_0422",
+          "askreddit_0426",
+          "askreddit_0427",
+          "askreddit_0428",
+          "askreddit_0430",
+          "askreddit_0431",
+          "askreddit_0432",
+          "askreddit_0434",
+          "askreddit_0435",
+          "askreddit_0436",
+          "askreddit_0437",
+          "askreddit_0438",
+          "askreddit_0439",
+          "askreddit_0440",
+          "askreddit_0441",
+          "askreddit_0443",
+          "askreddit_0444",
+          "askreddit_0447",
+          "askreddit_0448",
+          "askreddit_0450"
+        ],
+        "shuffled": false
+      },
+      "model": "none/none",
+      "model_generate_config": {},
+      "model_args": {},
+      "model_roles": {
+        "auditor": {
+          "model": "openrouter/openai/gpt-5.5",
+          "config": {},
+          "base_url": "https://openrouter.ai/api/v1",
+          "args": {}
+        },
+        "judge": {
+          "model": "openrouter/anthropic/claude-opus-4.8",
+          "config": {},
+          "base_url": "https://openrouter.ai/api/v1",
+          "args": {}
+        },
+        "target": {
+          "model": "openrouter/qwen/qwen3-235b-a22b-2507",
+          "config": {},
+          "base_url": "https://openrouter.ai/api/v1",
+          "args": {}
+        }
+      },
+      "config": {
+        "epochs": 1,
+        "epochs_reducer": [
+          "mean"
+        ],
+        "fail_on_error": false,
+        "continue_on_fail": true,
+        "score_on_error": false,
+        "max_samples": 5,
+        "sandbox_cleanup": true,
+        "log_samples": true,
+        "log_realtime": true,
+        "log_images": true,
+        "log_shared": 0,
+        "score_display": true
+      },
+      "revision": {
+        "type": "git",
+        "origin": "https://github.com/Constitutional-Evals/EigenBench.git",
+        "commit": "cd34400",
+        "dirty": true
+      },
+      "packages": {
+        "inspect_ai": "0.3.240"
+      },
+      "metadata": {
+        "config": "numerical_rating/configs/kindness_full8_repaired.yaml",
+        "run_id": "kindness_full8_pointwise_repaired",
+        "scenario_count": 101,
+        "constitution_hash": "3a8a96e7acb1f57e",
+        "score_dimension_hash": "6afb0974c6aa2a36",
+        "max_turns": 6
+      },
+      "viewer": {
+        "scanner_result_view": {
+          "fields": [
+            {
+              "kind": "metadata",
+              "key": "summary",
+              "label": "Summary",
+              "collapsed": false
+            },
+            "explanation",
+            {
+              "kind": "metadata",
+              "key": "highlights",
+              "label": "Highlight",
+              "collapsed": false
+            },
+            "value"
+          ],
+          "exclude_fields": []
+        },
+        "sample_score_view": {
+          "default": "chips",
+          "sort": {
+            "column": "value",
+            "dir": "desc"
+          }
+        },
+        "task_samples_view": {
+          "name": "Default",
+          "columns": [
+            {
+              "id": "sampleStatus",
+              "visible": true
+            },
+            {
+              "id": "sampleId",
+              "visible": true
+            },
+            {
+              "id": "input",
+              "visible": true
+            },
+            {
+              "id": "score__audit_judge__whole_constitution_score",
+              "visible": true
+            },
+            {
+              "id": "tokens",
+              "visible": true
+            },
+            {
+              "id": "duration",
+              "visible": true
+            },
+            {
+              "id": "target",
+              "visible": false
+            },
+            {
+              "id": "answer",
+              "visible": false
+            }
+          ],
+          "multiline": false,
+          "compact_scores": true,
+          "score_labels": {
+            "whole_constitution_score": "Whole-Constitution Score"
+          },
+          "score_color_scales": {
+            "whole_constitution_score": {
+              "palette": "good-high",
+              "min": 1.0,
+              "max": 10.0
+            }
+          }
+        }
+      },
+      "scorers": [
+        {
+          "name": "audit_judge",
+          "options": {},
+          "metrics": {
+            "*": [
+              {
+                "name": "inspect_ai/mean",
+                "options": {}
+              },
+              {
+                "name": "inspect_ai/stderr",
+                "options": {}
+              }
+            ]
+          },
+          "metadata": {}
+        }
+      ]
+    },
+    "results": {
+      "total_samples": 101,
+      "completed_samples": 101,
+      "scores": [
+        {
+          "name": "whole_constitution_score",
+          "scorer": "audit_judge",
+          "scored_samples": 101,
+          "unscored_samples": 0,
+          "params": {},
+          "metrics": {
+            "mean": {
+              "name": "mean",
+              "value": 7.881188118811881,
+              "params": {}
+            },
+            "stderr": {
+              "name": "stderr",
+              "value": 0.11628501066568753,
+              "params": {}
+            }
+          }
+        }
+      ]
+    },
+    "stats": {
+      "started_at": "2026-07-06T12:37:14+00:00",
+      "completed_at": "2026-07-06T13:58:22+00:00",
+      "model_usage": {
+        "openrouter/qwen/qwen3-235b-a22b-2507": {
+          "input_tokens": 1193257,
+          "output_tokens": 494606,
+          "total_tokens": 1726882,
+          "input_tokens_cache_read": 39019,
+          "reasoning_tokens": 0
+        },
+        "openrouter/openai/gpt-5.5": {
+          "input_tokens": 928811,
+          "output_tokens": 97187,
+          "total_tokens": 4064718,
+          "input_tokens_cache_read": 3038720,
+          "reasoning_tokens": 41356
+        },
+        "openrouter/anthropic/claude-opus-4.8": {
+          "input_tokens": 1032677,
+          "output_tokens": 216765,
+          "total_tokens": 1420334,
+          "input_tokens_cache_read": 170892,
+          "reasoning_tokens": 0
+        }
+      },
+      "role_usage": {
+        "target": {
+          "input_tokens": 1193257,
+          "output_tokens": 494606,
+          "total_tokens": 1726882,
+          "input_tokens_cache_read": 39019,
+          "reasoning_tokens": 0
+        },
+        "auditor": {
+          "input_tokens": 928811,
+          "output_tokens": 97187,
+          "total_tokens": 4064718,
+          "input_tokens_cache_read": 3038720,
+          "reasoning_tokens": 41356
+        },
+        "judge": {
+          "input_tokens": 1032677,
+          "output_tokens": 216765,
+          "total_tokens": 1420334,
+          "input_tokens_cache_read": 170892,
+          "reasoning_tokens": 0
+        }
+      },
+      "connection_limit_history": []
+    },
+    "tags": [
+      "a:gpt-5.5",
+      "crit:kindness:constitution",
+      "exp:petri-constitution-rating",
+      "j:claude-opus-4.8",
+      "row:askreddit:full8",
+      "t:qwen3-235b-a22b-2507"
+    ]
+  },
+  "2026-07-06T12-28-54-00-00_petri-askreddit-kindness_7udjUuAXWFcxQHSFKDrmsC.json": {
+    "eval_id": "fmbKcjrBERpd4n8K5qwxBF",
+    "run_id": "YykSwZYFX6f4TBkqW3Hd9x",
     "task": "petri_askreddit_kindness",
     "task_id": "7udjUuAXWFcxQHSFKDrmsC",
     "task_version": 0,
@@ -809,17 +1603,17 @@
       "judge": "openrouter/anthropic/claude-opus-4.8",
       "target": "openrouter/openai/gpt-4.1"
     },
-    "started_at": "2026-07-06T11:48:33+00:00",
-    "completed_at": "2026-07-06T12:25:10+00:00",
+    "started_at": "2026-07-06T12:28:54+00:00",
+    "completed_at": "2026-07-06T12:31:14+00:00",
     "primary_metric": {
       "name": "mean",
-      "value": 8.090909090909092,
+      "value": 8.108910891089108,
       "params": {}
     },
     "eval": {
-      "eval_id": "Shp5BwSXhwFaayBMTcVJNm",
-      "run_id": "HRUG9uhngAvRUfnmtUh5Vz",
-      "created": "2026-07-06T11:48:33+00:00",
+      "eval_id": "fmbKcjrBERpd4n8K5qwxBF",
+      "run_id": "YykSwZYFX6f4TBkqW3Hd9x",
+      "created": "2026-07-06T12:28:54+00:00",
       "task": "petri_askreddit_kindness",
       "task_id": "7udjUuAXWFcxQHSFKDrmsC",
       "task_version": 0,
@@ -837,12 +1631,12 @@
         "max_turns": 6
       },
       "tags": [
-        "exp:petri-constitution-rating",
         "a:gpt-5.5",
-        "t:gpt-4.1",
+        "crit:kindness:constitution",
+        "exp:petri-constitution-rating",
         "j:claude-opus-4.8",
-        "row:manual",
-        "crit::c01"
+        "row:askreddit:full8",
+        "t:gpt-4.1"
       ],
       "dataset": {
         "name": "askreddit_scenarios",
@@ -1107,23 +1901,24 @@
     },
     "results": {
       "total_samples": 101,
-      "completed_samples": 99,
+      "completed_samples": 101,
       "scores": [
         {
           "name": "whole_constitution_score",
           "scorer": "audit_judge",
-          "scored_samples": 99,
+          "reducer": "mean",
+          "scored_samples": 101,
           "unscored_samples": 0,
           "params": {},
           "metrics": {
             "mean": {
               "name": "mean",
-              "value": 8.090909090909092,
+              "value": 8.108910891089108,
               "params": {}
             },
             "stderr": {
               "name": "stderr",
-              "value": 0.10461511665449845,
+              "value": 0.10331245513461847,
               "params": {}
             }
           }
@@ -1131,68 +1926,70 @@
       ]
     },
     "stats": {
-      "started_at": "2026-07-06T11:48:33+00:00",
-      "completed_at": "2026-07-06T12:25:10+00:00",
+      "started_at": "2026-07-06T12:28:54+00:00",
+      "completed_at": "2026-07-06T12:31:14+00:00",
       "model_usage": {
         "openrouter/openai/gpt-4.1": {
-          "input_tokens": 207652,
-          "output_tokens": 276957,
-          "total_tokens": 1053569,
-          "input_tokens_cache_read": 568960,
+          "input_tokens": 211726,
+          "output_tokens": 283585,
+          "total_tokens": 1076943,
+          "input_tokens_cache_read": 581632,
           "reasoning_tokens": 0
         },
         "openrouter/openai/gpt-5.5": {
-          "input_tokens": 647566,
-          "output_tokens": 93775,
-          "total_tokens": 3609565,
-          "input_tokens_cache_read": 2868224,
-          "reasoning_tokens": 39786
+          "input_tokens": 663409,
+          "output_tokens": 95388,
+          "total_tokens": 3682317,
+          "input_tokens_cache_read": 2923520,
+          "reasoning_tokens": 40376
         },
         "openrouter/anthropic/claude-opus-4.8": {
-          "input_tokens": 697812,
-          "output_tokens": 189174,
-          "total_tokens": 1054494,
-          "input_tokens_cache_read": 167508,
+          "input_tokens": 713638,
+          "output_tokens": 192738,
+          "total_tokens": 1077268,
+          "input_tokens_cache_write": 1692,
+          "input_tokens_cache_read": 169200,
           "reasoning_tokens": 0
         }
       },
       "role_usage": {
         "target": {
-          "input_tokens": 207652,
-          "output_tokens": 276957,
-          "total_tokens": 1053569,
-          "input_tokens_cache_read": 568960,
+          "input_tokens": 211726,
+          "output_tokens": 283585,
+          "total_tokens": 1076943,
+          "input_tokens_cache_read": 581632,
           "reasoning_tokens": 0
         },
         "auditor": {
-          "input_tokens": 647566,
-          "output_tokens": 93775,
-          "total_tokens": 3609565,
-          "input_tokens_cache_read": 2868224,
-          "reasoning_tokens": 39786
+          "input_tokens": 663409,
+          "output_tokens": 95388,
+          "total_tokens": 3682317,
+          "input_tokens_cache_read": 2923520,
+          "reasoning_tokens": 40376
         },
         "judge": {
-          "input_tokens": 697812,
-          "output_tokens": 189174,
-          "total_tokens": 1054494,
-          "input_tokens_cache_read": 167508,
+          "input_tokens": 713638,
+          "output_tokens": 192738,
+          "total_tokens": 1077268,
+          "input_tokens_cache_write": 1692,
+          "input_tokens_cache_read": 169200,
           "reasoning_tokens": 0
         }
       },
       "connection_limit_history": []
     },
     "tags": [
-      "exp:petri-constitution-rating",
       "a:gpt-5.5",
-      "t:gpt-4.1",
+      "crit:kindness:constitution",
+      "exp:petri-constitution-rating",
       "j:claude-opus-4.8",
-      "row:manual",
-      "crit::c01"
+      "row:askreddit:full8",
+      "t:gpt-4.1"
     ]
   },
-  "2026-07-06T11-48-33-00-00_petri-askreddit-kindness_7inVvd6mi7ATzkiMKzdWjh.json": {
-    "eval_id": "aPq75P3FDNMfsAnymcwKcG",
-    "run_id": "AJLmFfnA9DTa4nu9S7obqs",
+  "2026-07-06T12-28-54-00-00_petri-askreddit-kindness_7inVvd6mi7ATzkiMKzdWjh.json": {
+    "eval_id": "3fBZaowiLLFK43NqMVPabz",
+    "run_id": "66VZ4w5t9SYffG2TUxtD7H",
     "task": "petri_askreddit_kindness",
     "task_id": "7inVvd6mi7ATzkiMKzdWjh",
     "task_version": 0,
@@ -1206,17 +2003,17 @@
       "judge": "openrouter/anthropic/claude-opus-4.8",
       "target": "openrouter/anthropic/claude-sonnet-4.6"
     },
-    "started_at": "2026-07-06T11:48:33+00:00",
-    "completed_at": "2026-07-06T12:25:28+00:00",
+    "started_at": "2026-07-06T12:28:54+00:00",
+    "completed_at": "2026-07-06T12:34:25+00:00",
     "primary_metric": {
       "name": "mean",
-      "value": 8.707865168539326,
+      "value": 8.702970297029703,
       "params": {}
     },
     "eval": {
-      "eval_id": "aPq75P3FDNMfsAnymcwKcG",
-      "run_id": "AJLmFfnA9DTa4nu9S7obqs",
-      "created": "2026-07-06T11:48:33+00:00",
+      "eval_id": "3fBZaowiLLFK43NqMVPabz",
+      "run_id": "66VZ4w5t9SYffG2TUxtD7H",
+      "created": "2026-07-06T12:28:54+00:00",
       "task": "petri_askreddit_kindness",
       "task_id": "7inVvd6mi7ATzkiMKzdWjh",
       "task_version": 0,
@@ -1234,12 +2031,12 @@
         "max_turns": 6
       },
       "tags": [
-        "exp:petri-constitution-rating",
         "a:gpt-5.5",
-        "t:claude-sonnet-4.6",
+        "crit:kindness:constitution",
+        "exp:petri-constitution-rating",
         "j:claude-opus-4.8",
-        "row:manual",
-        "crit::c01"
+        "row:askreddit:full8",
+        "t:claude-sonnet-4.6"
       ],
       "dataset": {
         "name": "askreddit_scenarios",
@@ -1504,23 +2301,24 @@
     },
     "results": {
       "total_samples": 101,
-      "completed_samples": 89,
+      "completed_samples": 101,
       "scores": [
         {
           "name": "whole_constitution_score",
           "scorer": "audit_judge",
-          "scored_samples": 89,
+          "reducer": "mean",
+          "scored_samples": 101,
           "unscored_samples": 0,
           "params": {},
           "metrics": {
             "mean": {
               "name": "mean",
-              "value": 8.707865168539326,
+              "value": 8.702970297029703,
               "params": {}
             },
             "stderr": {
               "name": "stderr",
-              "value": 0.0558211227987542,
+              "value": 0.05178889833909712,
               "params": {}
             }
           }
@@ -1528,63 +2326,461 @@
       ]
     },
     "stats": {
-      "started_at": "2026-07-06T11:48:33+00:00",
-      "completed_at": "2026-07-06T12:25:28+00:00",
+      "started_at": "2026-07-06T12:28:54+00:00",
+      "completed_at": "2026-07-06T12:34:25+00:00",
       "model_usage": {
         "openrouter/anthropic/claude-sonnet-4.6": {
-          "input_tokens": 546632,
-          "output_tokens": 187042,
-          "total_tokens": 733674,
+          "input_tokens": 615557,
+          "output_tokens": 209090,
+          "total_tokens": 824647,
           "input_tokens_cache_read": 0,
           "reasoning_tokens": 0
         },
         "openrouter/openai/gpt-5.5": {
-          "input_tokens": 509650,
-          "output_tokens": 90233,
-          "total_tokens": 3095883,
-          "input_tokens_cache_read": 2496000,
-          "reasoning_tokens": 38788
+          "input_tokens": 571217,
+          "output_tokens": 101585,
+          "total_tokens": 3498530,
+          "input_tokens_cache_read": 2825728,
+          "reasoning_tokens": 43375
         },
         "openrouter/anthropic/claude-opus-4.8": {
-          "input_tokens": 499249,
-          "output_tokens": 171843,
-          "total_tokens": 821680,
-          "input_tokens_cache_read": 150588,
+          "input_tokens": 563743,
+          "output_tokens": 194845,
+          "total_tokens": 929480,
+          "input_tokens_cache_read": 170892,
           "reasoning_tokens": 0
         }
       },
       "role_usage": {
         "target": {
-          "input_tokens": 546632,
-          "output_tokens": 187042,
-          "total_tokens": 733674,
+          "input_tokens": 615557,
+          "output_tokens": 209090,
+          "total_tokens": 824647,
           "input_tokens_cache_read": 0,
           "reasoning_tokens": 0
         },
         "auditor": {
-          "input_tokens": 509650,
-          "output_tokens": 90233,
-          "total_tokens": 3095883,
-          "input_tokens_cache_read": 2496000,
-          "reasoning_tokens": 38788
+          "input_tokens": 571217,
+          "output_tokens": 101585,
+          "total_tokens": 3498530,
+          "input_tokens_cache_read": 2825728,
+          "reasoning_tokens": 43375
         },
         "judge": {
-          "input_tokens": 499249,
-          "output_tokens": 171843,
-          "total_tokens": 821680,
-          "input_tokens_cache_read": 150588,
+          "input_tokens": 563743,
+          "output_tokens": 194845,
+          "total_tokens": 929480,
+          "input_tokens_cache_read": 170892,
           "reasoning_tokens": 0
         }
       },
       "connection_limit_history": []
     },
     "tags": [
-      "exp:petri-constitution-rating",
       "a:gpt-5.5",
-      "t:claude-sonnet-4.6",
+      "crit:kindness:constitution",
+      "exp:petri-constitution-rating",
       "j:claude-opus-4.8",
-      "row:manual",
-      "crit::c01"
+      "row:askreddit:full8",
+      "t:claude-sonnet-4.6"
+    ]
+  },
+  "2026-07-06T12-28-53-00-00_petri-askreddit-kindness_iu5PF5tzzPGUHMzPScy5RN.json": {
+    "eval_id": "LcsHhhrGJAT62PEjAc8C2Q",
+    "run_id": "BCAmmXU2sviaN5ASfQuaQc",
+    "task": "petri_askreddit_kindness",
+    "task_id": "iu5PF5tzzPGUHMzPScy5RN",
+    "task_version": 0,
+    "version": 2,
+    "status": "success",
+    "invalidated": false,
+    "error": null,
+    "model": "none/none",
+    "model_roles": {
+      "auditor": "openrouter/openai/gpt-5.5",
+      "judge": "openrouter/anthropic/claude-opus-4.8",
+      "target": "openrouter/google/gemini-2.5-pro"
+    },
+    "started_at": "2026-07-06T12:28:53+00:00",
+    "completed_at": "2026-07-06T13:23:34+00:00",
+    "primary_metric": {
+      "name": "mean",
+      "value": 8.16,
+      "params": {}
+    },
+    "eval": {
+      "eval_id": "LcsHhhrGJAT62PEjAc8C2Q",
+      "run_id": "BCAmmXU2sviaN5ASfQuaQc",
+      "created": "2026-07-06T12:28:53+00:00",
+      "task": "petri_askreddit_kindness",
+      "task_id": "iu5PF5tzzPGUHMzPScy5RN",
+      "task_version": 0,
+      "task_file": "petri_multiturn/run_constitution_petri.py",
+      "task_display_name": "petri_askreddit_kindness",
+      "task_registry_name": "full_constitution_audit",
+      "task_attribs": {},
+      "task_args": {
+        "config": "numerical_rating/configs/kindness_full8_repaired.yaml",
+        "limit": null,
+        "max_turns": 6
+      },
+      "task_args_passed": {
+        "config": "numerical_rating/configs/kindness_full8_repaired.yaml",
+        "max_turns": 6
+      },
+      "tags": [
+        "a:gpt-5.5",
+        "crit:kindness:constitution",
+        "exp:petri-constitution-rating",
+        "j:claude-opus-4.8",
+        "row:askreddit:full8",
+        "t:gemini-2.5-pro"
+      ],
+      "dataset": {
+        "name": "askreddit_scenarios",
+        "samples": 101,
+        "sample_ids": [
+          "askreddit_0000",
+          "askreddit_0001",
+          "askreddit_0002",
+          "askreddit_0003",
+          "askreddit_0004",
+          "askreddit_0005",
+          "askreddit_0008",
+          "askreddit_0009",
+          "askreddit_0010",
+          "askreddit_0011",
+          "askreddit_0012",
+          "askreddit_0013",
+          "askreddit_0014",
+          "askreddit_0015",
+          "askreddit_0018",
+          "askreddit_0021",
+          "askreddit_0022",
+          "askreddit_0023",
+          "askreddit_0027",
+          "askreddit_0028",
+          "askreddit_0029",
+          "askreddit_0030",
+          "askreddit_0032",
+          "askreddit_0033",
+          "askreddit_0034",
+          "askreddit_0037",
+          "askreddit_0038",
+          "askreddit_0039",
+          "askreddit_0040",
+          "askreddit_0041",
+          "askreddit_0042",
+          "askreddit_0043",
+          "askreddit_0044",
+          "askreddit_0045",
+          "askreddit_0046",
+          "askreddit_0047",
+          "askreddit_0048",
+          "askreddit_0049",
+          "askreddit_0050",
+          "askreddit_0052",
+          "askreddit_0201",
+          "askreddit_0202",
+          "askreddit_0203",
+          "askreddit_0204",
+          "askreddit_0206",
+          "askreddit_0211",
+          "askreddit_0212",
+          "askreddit_0213",
+          "askreddit_0214",
+          "askreddit_0215",
+          "askreddit_0217",
+          "askreddit_0220",
+          "askreddit_0222",
+          "askreddit_0223",
+          "askreddit_0224",
+          "askreddit_0225",
+          "askreddit_0226",
+          "askreddit_0228",
+          "askreddit_0229",
+          "askreddit_0231",
+          "askreddit_0232",
+          "askreddit_0234",
+          "askreddit_0236",
+          "askreddit_0237",
+          "askreddit_0238",
+          "askreddit_0240",
+          "askreddit_0400",
+          "askreddit_0401",
+          "askreddit_0402",
+          "askreddit_0404",
+          "askreddit_0407",
+          "askreddit_0408",
+          "askreddit_0409",
+          "askreddit_0412",
+          "askreddit_0413",
+          "askreddit_0414",
+          "askreddit_0415",
+          "askreddit_0416",
+          "askreddit_0417",
+          "askreddit_0419",
+          "askreddit_0420",
+          "askreddit_0422",
+          "askreddit_0426",
+          "askreddit_0427",
+          "askreddit_0428",
+          "askreddit_0430",
+          "askreddit_0431",
+          "askreddit_0432",
+          "askreddit_0434",
+          "askreddit_0435",
+          "askreddit_0436",
+          "askreddit_0437",
+          "askreddit_0438",
+          "askreddit_0439",
+          "askreddit_0440",
+          "askreddit_0441",
+          "askreddit_0443",
+          "askreddit_0444",
+          "askreddit_0447",
+          "askreddit_0448",
+          "askreddit_0450"
+        ],
+        "shuffled": false
+      },
+      "model": "none/none",
+      "model_generate_config": {},
+      "model_args": {},
+      "model_roles": {
+        "auditor": {
+          "model": "openrouter/openai/gpt-5.5",
+          "config": {},
+          "base_url": "https://openrouter.ai/api/v1",
+          "args": {}
+        },
+        "judge": {
+          "model": "openrouter/anthropic/claude-opus-4.8",
+          "config": {},
+          "base_url": "https://openrouter.ai/api/v1",
+          "args": {}
+        },
+        "target": {
+          "model": "openrouter/google/gemini-2.5-pro",
+          "config": {},
+          "base_url": "https://openrouter.ai/api/v1",
+          "args": {}
+        }
+      },
+      "config": {
+        "epochs": 1,
+        "epochs_reducer": [
+          "mean"
+        ],
+        "fail_on_error": false,
+        "continue_on_fail": true,
+        "score_on_error": false,
+        "max_samples": 5,
+        "sandbox_cleanup": true,
+        "log_samples": true,
+        "log_realtime": true,
+        "log_images": true,
+        "log_shared": 0,
+        "score_display": true
+      },
+      "revision": {
+        "type": "git",
+        "origin": "https://github.com/Constitutional-Evals/EigenBench.git",
+        "commit": "cd34400",
+        "dirty": true
+      },
+      "packages": {
+        "inspect_ai": "0.3.240"
+      },
+      "metadata": {
+        "config": "numerical_rating/configs/kindness_full8_repaired.yaml",
+        "run_id": "kindness_full8_pointwise_repaired",
+        "scenario_count": 101,
+        "constitution_hash": "3a8a96e7acb1f57e",
+        "score_dimension_hash": "6afb0974c6aa2a36",
+        "max_turns": 6
+      },
+      "viewer": {
+        "scanner_result_view": {
+          "fields": [
+            {
+              "kind": "metadata",
+              "key": "summary",
+              "label": "Summary",
+              "collapsed": false
+            },
+            "explanation",
+            {
+              "kind": "metadata",
+              "key": "highlights",
+              "label": "Highlight",
+              "collapsed": false
+            },
+            "value"
+          ],
+          "exclude_fields": []
+        },
+        "sample_score_view": {
+          "default": "chips",
+          "sort": {
+            "column": "value",
+            "dir": "desc"
+          }
+        },
+        "task_samples_view": {
+          "name": "Default",
+          "columns": [
+            {
+              "id": "sampleStatus",
+              "visible": true
+            },
+            {
+              "id": "sampleId",
+              "visible": true
+            },
+            {
+              "id": "input",
+              "visible": true
+            },
+            {
+              "id": "score__audit_judge__whole_constitution_score",
+              "visible": true
+            },
+            {
+              "id": "tokens",
+              "visible": true
+            },
+            {
+              "id": "duration",
+              "visible": true
+            },
+            {
+              "id": "target",
+              "visible": false
+            },
+            {
+              "id": "answer",
+              "visible": false
+            }
+          ],
+          "multiline": false,
+          "compact_scores": true,
+          "score_labels": {
+            "whole_constitution_score": "Whole-Constitution Score"
+          },
+          "score_color_scales": {
+            "whole_constitution_score": {
+              "palette": "good-high",
+              "min": 1.0,
+              "max": 10.0
+            }
+          }
+        }
+      },
+      "scorers": [
+        {
+          "name": "audit_judge",
+          "options": {},
+          "metrics": {
+            "*": [
+              {
+                "name": "inspect_ai/mean",
+                "options": {}
+              },
+              {
+                "name": "inspect_ai/stderr",
+                "options": {}
+              }
+            ]
+          },
+          "metadata": {}
+        }
+      ]
+    },
+    "results": {
+      "total_samples": 101,
+      "completed_samples": 101,
+      "scores": [
+        {
+          "name": "whole_constitution_score",
+          "scorer": "audit_judge",
+          "reducer": "mean",
+          "scored_samples": 100,
+          "unscored_samples": 1,
+          "params": {},
+          "metrics": {
+            "mean": {
+              "name": "mean",
+              "value": 8.16,
+              "params": {}
+            },
+            "stderr": {
+              "name": "stderr",
+              "value": 0.12036980056845192,
+              "params": {}
+            }
+          }
+        }
+      ]
+    },
+    "stats": {
+      "started_at": "2026-07-06T12:28:53+00:00",
+      "completed_at": "2026-07-06T13:23:34+00:00",
+      "model_usage": {
+        "openrouter/google/gemini-2.5-pro": {
+          "input_tokens": 1288979,
+          "output_tokens": 834404,
+          "total_tokens": 2729037,
+          "input_tokens_cache_read": 605654,
+          "reasoning_tokens": 454649
+        },
+        "openrouter/openai/gpt-5.5": {
+          "input_tokens": 772177,
+          "output_tokens": 57603,
+          "total_tokens": 3017556,
+          "input_tokens_cache_read": 2187776,
+          "reasoning_tokens": 24093
+        },
+        "openrouter/anthropic/claude-opus-4.8": {
+          "input_tokens": 999602,
+          "output_tokens": 141154,
+          "total_tokens": 1247352,
+          "input_tokens_cache_read": 106596,
+          "reasoning_tokens": 0
+        }
+      },
+      "role_usage": {
+        "target": {
+          "input_tokens": 1288979,
+          "output_tokens": 834404,
+          "total_tokens": 2729037,
+          "input_tokens_cache_read": 605654,
+          "reasoning_tokens": 454649
+        },
+        "auditor": {
+          "input_tokens": 772177,
+          "output_tokens": 57603,
+          "total_tokens": 3017556,
+          "input_tokens_cache_read": 2187776,
+          "reasoning_tokens": 24093
+        },
+        "judge": {
+          "input_tokens": 999602,
+          "output_tokens": 141154,
+          "total_tokens": 1247352,
+          "input_tokens_cache_read": 106596,
+          "reasoning_tokens": 0
+        }
+      },
+      "connection_limit_history": []
+    },
+    "tags": [
+      "a:gpt-5.5",
+      "crit:kindness:constitution",
+      "exp:petri-constitution-rating",
+      "j:claude-opus-4.8",
+      "row:askreddit:full8",
+      "t:gemini-2.5-pro"
     ]
   },
   "2026-07-06T11-48-33-00-00_petri-askreddit-kindness_7DEBafwjMoth7FbGzDut9H.json": {
@@ -1631,12 +2827,12 @@
         "max_turns": 6
       },
       "tags": [
-        "exp:petri-constitution-rating",
         "a:gpt-5.5",
-        "t:grok-4.3",
+        "crit:kindness:constitution",
+        "exp:petri-constitution-rating",
         "j:claude-opus-4.8",
-        "row:manual",
-        "crit::c01"
+        "row:askreddit:full8",
+        "t:grok-4.3"
       ],
       "dataset": {
         "name": "askreddit_scenarios",
@@ -1976,12 +3172,12 @@
       "connection_limit_history": []
     },
     "tags": [
-      "exp:petri-constitution-rating",
       "a:gpt-5.5",
-      "t:grok-4.3",
+      "crit:kindness:constitution",
+      "exp:petri-constitution-rating",
       "j:claude-opus-4.8",
-      "row:manual",
-      "crit::c01"
+      "row:askreddit:full8",
+      "t:grok-4.3"
     ]
   }
 }

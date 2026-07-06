@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 import shutil
 import subprocess
@@ -24,6 +25,7 @@ from petri_multiturn.tags import merge_tags, run_tags
 DEFAULT_SOURCE = ROOT / "runs" / "petri_multiturn"
 OUTPUT_DIR = ROOT / "docs"
 SITE_LOG_DIR = "petri_logs"
+PRESERVED_OUTPUT_NAMES = ("numerical_rating",)
 
 
 @dataclass(frozen=True)
@@ -175,6 +177,13 @@ def model_roles(eval_info: dict[str, Any]) -> dict[str, str] | None:
 
 
 def log_tags(log: dict[str, Any]) -> list[str]:
+    existing = [tag for tag in log.get("tags") or [] if tag]
+    if all(
+        any(tag.startswith(prefix) for tag in existing)
+        for prefix in ("a:", "t:", "j:", "row:", "crit:")
+    ):
+        return list(dict.fromkeys(existing))
+
     eval_info = log.get("eval") or {}
     task_args = eval_info.get("task_args_passed") or eval_info.get("task_args") or {}
     roles = model_roles(eval_info) or {}
@@ -185,7 +194,7 @@ def log_tags(log: dict[str, Any]) -> list[str]:
         constitution=str(task_args.get("constitution") or ""),
         criterion_id=str(task_args.get("criterion_id") or "criterion_01"),
     )
-    return merge_tags(log.get("tags") or [], generated)
+    return merge_tags(existing, generated)
 
 
 def write_log_with_tags(log: EvalLog, target_dir: Path) -> None:
@@ -196,7 +205,7 @@ def write_log_with_tags(log: EvalLog, target_dir: Path) -> None:
     data["eval"] = eval_info
     data["tags"] = tags
     (target_dir / log.name).write_text(
-        json.dumps(data, indent=2) + "\n",
+        json.dumps(json_safe(data), indent=2, allow_nan=False) + "\n",
         encoding="utf-8",
     )
 
@@ -244,9 +253,32 @@ def enriched_listing(log_dir: Path) -> dict[str, dict[str, Any]]:
 def write_enriched_listing(log_dir: Path) -> None:
     manifest = enriched_listing(log_dir)
     (log_dir / "listing.json").write_text(
-        json.dumps(manifest, indent=2) + "\n",
+        json.dumps(json_safe(manifest), indent=2, allow_nan=False) + "\n",
         encoding="utf-8",
     )
+
+
+def json_safe(value: Any) -> Any:
+    """Return JSON-standard data for the browser-facing static bundle."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, dict):
+        return {key: json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [json_safe(item) for item in value]
+    return value
+
+
+def preserved_outputs() -> dict[str, Path]:
+    """Keep sibling hosted viewers when rebuilding the root Petri viewer."""
+    preserved: dict[str, Path] = {}
+    if not OUTPUT_DIR.exists():
+        return preserved
+    for name in PRESERVED_OUTPUT_NAMES:
+        path = OUTPUT_DIR / name
+        if path.exists():
+            preserved[name] = path
+    return preserved
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -385,9 +417,18 @@ def publish(logs: list[EvalLog]) -> None:
         asset_hash = file_hash(bundle_out / "assets" / "index.js")
         patch_index_html(bundle_out / "index.html", asset_hash)
 
-        if OUTPUT_DIR.exists():
-            shutil.rmtree(OUTPUT_DIR)
-        shutil.copytree(bundle_out, OUTPUT_DIR)
+        saved = preserved_outputs()
+        with tempfile.TemporaryDirectory(prefix="petri-preserve-") as preserve_tmp:
+            preserve_root = Path(preserve_tmp)
+            for name, path in saved.items():
+                shutil.copytree(path, preserve_root / name)
+
+            if OUTPUT_DIR.exists():
+                shutil.rmtree(OUTPUT_DIR)
+            shutil.copytree(bundle_out, OUTPUT_DIR)
+
+            for name in saved:
+                shutil.copytree(preserve_root / name, OUTPUT_DIR / name)
 
 
 def token_total(log: dict[str, Any]) -> int:
