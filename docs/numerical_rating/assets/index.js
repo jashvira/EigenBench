@@ -68674,13 +68674,6 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 			hidden.add("name");
 			hidden.add("path");
 			hidden.add("completedSamples");
-			hidden.add("status");
-			hidden.add("score");
-			hidden.add("completedAt");
-			hidden.add("totalTokens");
-			hidden.add("duration");
-			hidden.add("taskArgs");
-			hidden.add("tags");
 		} else {
 			hidden.add("path");
 			hidden.add("completedSamples");
