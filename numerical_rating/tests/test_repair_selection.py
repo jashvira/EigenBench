@@ -101,7 +101,7 @@ class RepairSelectionTest(unittest.TestCase):
             [(cell.scenario_index, cell.model_id) for cell in selected],
         )
         self.assertEqual(task.version, manifest_hash)
-        self.assertIn(f"repair:{manifest_hash[:8]}", task.tags)
+        self.assertEqual(task.tags, ["judge:model"])
         manifest_provenance = provenance_path(self.manifest_path)
         self.assertEqual(task.metadata["cell_manifest"], manifest_provenance)
         self.assertEqual(task.metadata["cell_manifest_hash"], manifest_hash)

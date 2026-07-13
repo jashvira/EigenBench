@@ -242,10 +242,5 @@ def pointwise_constitution_rating(
         },
         tags=[
             f"judge:{model_tag(active_judge_model)}",
-            *(
-                [f"repair:{repair_manifest.manifest_hash[:8]}"]
-                if repair_manifest is not None
-                else []
-            ),
         ],
     )

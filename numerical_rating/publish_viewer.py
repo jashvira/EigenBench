@@ -3,19 +3,16 @@
 from __future__ import annotations
 
 import argparse
+import gc
 import hashlib
 import json
-import os
-import re
-import shutil
 import subprocess
-import sys
 import tempfile
+import zipfile
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.parse import unquote, urlparse
 
-from inspect_ai.log import EvalLogInfo, list_eval_logs, read_eval_log
+import zipfile_zstd  # noqa: F401  Enables zstd support in Python's zipfile module.
 
 from numerical_rating.data import (
     RatingConfig,
@@ -25,16 +22,14 @@ from numerical_rating.data import (
     repo_path,
     sha256_text,
 )
-from numerical_rating.round_robin_analysis import load_ratings, rating_tensor
-from numerical_rating.round_robin_analysis import (
-    DEFAULT_REPAIR_CELLS,
-    reconcile_ratings,
-    repaired_cell_count,
-)
-
-
+from numerical_rating.materialize_eval_log import materialize
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = "numerical_rating/configs/kindness_1000_round_robin.yaml"
+DEFAULT_REPAIR_CELLS = (
+    ROOT
+    / "data/output/valuearena/processed/full8_kindness/"
+    "askreddit_1000_repaired_cells.json"
+)
 DEFAULT_SOURCES = (
     ROOT / "runs/numerical_rating/kindness_1000_round_robin",
     ROOT / "runs/numerical_rating/kindness_1000_round_robin_gemini4096",
@@ -42,7 +37,6 @@ DEFAULT_SOURCES = (
 )
 DEFAULT_OUTPUT = ROOT / "docs/numerical_rating"
 MAX_GITHUB_FILE_BYTES = 100 * 1024 * 1024
-MAX_PAGES_SITE_BYTES = 1_000_000_000
 
 
 @dataclass(frozen=True)
@@ -51,7 +45,6 @@ class SelectedLog:
 
     judge_model: str
     path: Path
-    info: EvalLogInfo
     mtime: float
 
 
@@ -72,6 +65,14 @@ def expected_hashes(config: RatingConfig) -> tuple[str, str]:
         sha256_text(load_constitution_text(config.constitution)),
         sha256_text(config.prompt.read_text(encoding="utf-8")),
     )
+
+
+def repair_cell_count(path: Path) -> int:
+    """Return the number of response cells replaced by the repair run."""
+    cells = json.loads(path.read_text(encoding="utf-8")).get("cells")
+    if not isinstance(cells, list) or not cells:
+        raise ValueError("Repair manifest contains no cells")
+    return len(cells)
 
 
 def complete_logs(
@@ -105,18 +106,18 @@ def complete_logs(
     selected: dict[str, SelectedLog] = {}
 
     for source in sources:
-        for info in list_eval_logs(str(source), formats=["eval"]):
-            location = urlparse(info.name)
-            path = Path(unquote(location.path))
-            log = read_eval_log(info, header_only=True)
-            metadata = log.eval.metadata or {}
-            results = log.results
+        for path in source.glob("*.eval"):
+            with zipfile.ZipFile(path) as archive:
+                header = json.loads(archive.read("header.json"))
+            evaluation = header["eval"]
+            metadata = evaluation.get("metadata") or {}
+            results = header.get("results") or {}
             judge_model = str(metadata.get("judge_model") or "")
             if (
                 judge_model not in expected_models
-                or log.status != "success"
-                or log.invalidated
-                or log.eval.task != "pointwise_constitution_rating"
+                or header.get("status") != "success"
+                or header.get("invalidated")
+                or evaluation.get("task") != "pointwise_constitution_rating"
                 or metadata.get("run_id") != config.run_id
                 or metadata.get("config") != expected_config
                 or metadata.get("constitution_hash") != constitution_hash
@@ -127,17 +128,15 @@ def complete_logs(
                 != config.generation_temperature
                 or metadata.get("cell_manifest") != expected_manifest
                 or metadata.get("cell_manifest_hash") != expected_manifest_hash
-                or not results
-                or results.total_samples != expected_samples
-                or results.completed_samples != expected_samples
+                or results.get("total_samples") != expected_samples
+                or results.get("completed_samples") != expected_samples
             ):
                 continue
 
             candidate = SelectedLog(
                 judge_model=judge_model,
                 path=path,
-                info=info,
-                mtime=float(info.mtime or 0),
+                mtime=path.stat().st_mtime,
             )
             current = selected.get(judge_model)
             if current is None or candidate.mtime > current.mtime:
@@ -149,13 +148,8 @@ def complete_logs(
     return [selected[judge.model] for judge in config.judges]
 
 
-def validate_logs(
-    config: RatingConfig,
-    base_logs: list[SelectedLog],
-    repair_logs: list[SelectedLog],
-) -> None:
-    """Read every score and validate the full judge-scenario-target tensor."""
-    logs = base_logs + repair_logs
+def validate_log_sizes(logs: list[SelectedLog]) -> None:
+    """Reject logs that cannot be committed to GitHub Pages."""
     oversized = [
         log.path
         for log in logs
@@ -166,12 +160,6 @@ def validate_logs(
             "Logs exceed GitHub's per-file limit: "
             + ", ".join(path.name for path in oversized)
         )
-    base_ratings = load_ratings([log.info for log in base_logs], config)
-    repairs = load_ratings([log.info for log in repair_logs], config)
-    ratings, _ = reconcile_ratings(base_ratings, repairs, config)
-    tensor, _ = rating_tensor(ratings, config)
-    if tensor.size != len(config.judges) * config.expected_response_cells:
-        raise AssertionError("Validated tensor has an unexpected size")
 
 
 def sha256_file(path: Path) -> str:
@@ -182,107 +170,53 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def stage_logs(logs: list[SelectedLog], directory: Path) -> None:
-    """Hard-link selected logs into an isolated bundle input directory."""
-    directory.mkdir(parents=True)
-    for log in logs:
-        target = directory / log.path.name
-        try:
-            os.link(log.path, target)
-        except OSError:
-            shutil.copy2(log.path, target)
+def materialize_final_logs(
+    base_logs: list[SelectedLog],
+    repair_logs: list[SelectedLog],
+    directory: Path,
+    repair_cells: Path,
+) -> list[Path]:
+    """Materialize one final complete log per judge."""
+    repair_by_judge = {log.judge_model: log for log in repair_logs}
+    directory.mkdir(parents=True, exist_ok=True)
+    final_paths: list[Path] = []
+
+    for selected in base_logs:
+        repair_path = repair_by_judge[selected.judge_model].path
+        path = directory / selected.path.name
+        materialize(selected.path, repair_path, repair_cells, path)
+        final_paths.append(path)
+        gc.collect()
+
+    return final_paths
 
 
-def patch_log_directory(index_path: Path) -> None:
-    """Remove the temporary absolute path embedded by Inspect's bundler."""
-    text = index_path.read_text(encoding="utf-8")
-    replacement = (
-        '<script id="log_dir_context" type="application/json">'
-        '{"log_dir": "logs", "abs_log_dir": "logs"}</script>'
-    )
-    text, count = re.subn(
-        r'<script id="log_dir_context" type="application/json">.*?</script>',
-        replacement,
-        text,
-        count=1,
-        flags=re.DOTALL,
-    )
-    if count != 1:
-        raise ValueError("Inspect bundle has no unique log_dir_context element")
-    index_path.write_text(text, encoding="utf-8")
-
-
-def directory_size(path: Path) -> int:
-    return sum(item.stat().st_size for item in path.rglob("*") if item.is_file())
-
-
-def validate_bundle(
-    log_dir: Path,
-    site_dir: Path,
-    output_dir: Path,
-    expected_count: int,
-) -> None:
-    """Verify listing, bytes, paths, and hosting limits before publication."""
-    listing = json.loads((site_dir / "logs/listing.json").read_text(encoding="utf-8"))
-    if not isinstance(listing, dict) or len(listing) != expected_count:
-        raise ValueError("Inspect bundle listing does not contain the expected logs")
-    if not all(str(name).endswith(".eval") for name in listing):
-        raise ValueError("Inspect bundle listing contains a non-eval log")
-
-    source_hashes = {
-        path.name: sha256_file(path)
-        for path in log_dir.glob("*.eval")
-    }
-    bundle_hashes = {
-        path.name: sha256_file(path)
-        for path in (site_dir / "logs").glob("*.eval")
-    }
-    if source_hashes != bundle_hashes:
-        raise ValueError("Bundled logs differ from the selected source logs")
-    docs_dir = (ROOT / "docs").resolve()
-    output_path = output_dir.resolve()
-    replaced_size = (
-        directory_size(output_dir)
-        if output_dir.exists() and output_path.is_relative_to(docs_dir)
-        else 0
-    )
-    projected_docs_size = (
-        directory_size(docs_dir) - replaced_size + directory_size(site_dir)
-    )
-    if projected_docs_size >= MAX_PAGES_SITE_BYTES:
-        raise ValueError("Projected docs directory exceeds the GitHub Pages site limit")
+def publish_final_logs(paths: list[Path], output_dir: Path) -> None:
+    """Replace the log payload while retaining the existing Inspect viewer."""
+    if not (output_dir / "index.html").is_file():
+        raise FileNotFoundError("Inspect viewer assets are missing")
     if not (ROOT / "docs/.nojekyll").is_file():
-        raise ValueError("docs/.nojekyll is missing")
-
-
-def build_bundle(log_dir: Path, site_dir: Path) -> None:
-    """Build and normalize an Inspect static viewer bundle."""
-    subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "inspect_ai",
-            "view",
-            "bundle",
-            "--log-dir",
-            str(log_dir),
-            "--output-dir",
-            str(site_dir),
-            "--display",
-            "plain",
-        ],
-        check=True,
+        raise FileNotFoundError("docs/.nojekyll is missing")
+    logs_dir = output_dir / "logs"
+    with tempfile.TemporaryDirectory(prefix="eigenbench-final-log-stage-") as work:
+        stage = Path(work)
+        for path in paths:
+            target = stage / path.name
+            subprocess.run(["cp", path, target], check=True)
+        subprocess.run(
+            ["rsync", "-a", "--delete", f"{stage}/", f"{logs_dir}/"], check=True
+        )
+    (logs_dir / "listing.json").write_text(
+        json.dumps(sorted(path.name for path in paths), indent=2) + "\n",
+        encoding="utf-8",
     )
-    patch_log_directory(site_dir / "index.html")
-
-
-def publish(site_dir: Path, output_dir: Path) -> None:
-    """Replace the hosted numerical viewer with deletion semantics."""
-    output_dir.mkdir(parents=True, exist_ok=True)
-    subprocess.run(
-        ["rsync", "-a", "--delete", f"{site_dir}/", f"{output_dir}/"],
-        check=True,
-    )
+    published_hashes = {
+        path.name: sha256_file(logs_dir / path.name)
+        for path in paths
+    }
+    source_hashes = {path.name: sha256_file(path) for path in paths}
+    if published_hashes != source_hashes:
+        raise ValueError("Published logs differ from materialized logs")
 
 
 def main() -> None:
@@ -301,26 +235,23 @@ def main() -> None:
         config,
         sources,
         args.config,
-        expected_samples=repaired_cell_count(args.repair_cells, config),
+        expected_samples=repair_cell_count(args.repair_cells),
         cell_manifest=args.repair_cells,
     )
-    validate_logs(config, base_logs, repair_logs)
-    logs = base_logs + repair_logs
-
+    validate_log_sizes(base_logs + repair_logs)
     with tempfile.TemporaryDirectory(prefix="eigenbench-numerical-view-") as work:
         work_dir = Path(work)
-        selected_dir = work_dir / "selected"
-        site_dir = work_dir / "site"
-        stage_logs(logs, selected_dir)
-        build_bundle(selected_dir, site_dir)
-        validate_bundle(selected_dir, site_dir, args.output_dir, len(logs))
-        publish(site_dir, args.output_dir)
+        final_dir = work_dir / "final"
+        final_logs = materialize_final_logs(
+            base_logs, repair_logs, final_dir, args.repair_cells
+        )
+        publish_final_logs(final_logs, args.output_dir)
 
     print(
         json.dumps(
             {
                 "output_dir": str(args.output_dir),
-                "logs": [log.path.name for log in logs],
+                "logs": [path.name for path in final_logs],
             },
             indent=2,
         )
