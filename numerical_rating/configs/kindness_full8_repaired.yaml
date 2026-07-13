@@ -1,0 +1,42 @@
+run_id: kindness_full8_pointwise_repaired
+dataset: askreddit
+constitution: data/constitutions/kindness.json
+source: data/output/valuearena/processed/full8_kindness/kindness_full8_response_cells_gemini_repaired.csv
+slice_summary: data/output/valuearena/processed/full8_kindness/summary.json
+prompt: numerical_rating/prompts/whole_constitution_pointwise.md
+selection: scenarios with response cells for all 8 models, using regenerated Gemini 2.5 Pro cells where the published response was a provider error
+expected_scenarios: 101
+expected_models: 8
+expected_response_cells: 808
+judge_model: openrouter/anthropic/claude-opus-4.8
+generation:
+  max_tokens: 1024
+  temperature: 0
+score_scale:
+  min: 1
+  max: 10
+response_models:
+  0:
+    name: Claude 4 Sonnet
+    id: claude-sonnet-4-20250514
+  1:
+    name: GPT 4.1
+    id: gpt-4.1-2025-04-14
+  2:
+    name: Gemini 2.5 Pro
+    id: gemini-2.5-pro
+  3:
+    name: Grok 4
+    id: grok-4-0709
+  4:
+    name: DeepSeek v3
+    id: deepseek/deepseek-chat-v3-0324
+  5:
+    name: Qwen 3 235B 2507
+    id: qwen/qwen3-235b-a22b-2507
+  6:
+    name: Kimi K2 0905
+    id: moonshotai/kimi-k2-0905
+  7:
+    name: Llama 4 Maverick
+    id: meta-llama/llama-4-maverick
