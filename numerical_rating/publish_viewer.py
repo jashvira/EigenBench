@@ -209,6 +209,11 @@ def publish_final_logs(paths: list[Path], output_dir: Path) -> None:
     from inspect_ai.log import write_log_dir_manifest
 
     write_log_dir_manifest(str(logs_dir), filename="listing.json")
+    manifest_path = logs_dir / "listing.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    for header in manifest.values():
+        header.pop("reductions", None)
+    manifest_path.write_text(json.dumps(manifest, separators=(",", ":")), encoding="utf-8")
     published_hashes = {
         path.name: sha256_file(logs_dir / path.name)
         for path in paths
