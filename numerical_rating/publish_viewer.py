@@ -206,10 +206,9 @@ def publish_final_logs(paths: list[Path], output_dir: Path) -> None:
         subprocess.run(
             ["rsync", "-a", "--delete", f"{stage}/", f"{logs_dir}/"], check=True
         )
-    (logs_dir / "listing.json").write_text(
-        json.dumps(sorted(path.name for path in paths), indent=2) + "\n",
-        encoding="utf-8",
-    )
+    from inspect_ai.log import write_log_dir_manifest
+
+    write_log_dir_manifest(str(logs_dir), filename="listing.json")
     published_hashes = {
         path.name: sha256_file(logs_dir / path.name)
         for path in paths
