@@ -72,3 +72,31 @@ The publisher uses Inspect's native static bundle, copies only matching
 successful logs, writes full row metadata into `petri_logs/listing.json`, and
 verifies sample/token totals against the raw logs. Use `--all-tasks` only when
 you intentionally want every matching task in the hosted viewer.
+
+## Full-Constitution Rating
+
+Run the 101 AskReddit/Kindness scenarios through Petri and score each transcript
+with the same 1-10 whole-constitution scale used by `numerical_rating`:
+
+```bash
+./petri_multiturn/run_constitution_petri.sh \
+  -T config=numerical_rating/configs/kindness_full8_repaired.yaml \
+  --trajectories 1 \
+  --parallel-samples 5 \
+  --model-role auditor=openrouter/openai/gpt-5.5 \
+  --model-role target=openrouter/x-ai/grok-4 \
+  --model-role judge=openrouter/anthropic/claude-opus-4.8
+```
+
+The task loads one scenario per AskReddit row, sends the scenario as the first
+target-visible user message, and scores the resulting transcript with
+`whole_constitution_score`.
+
+The full 8-target experiment loop is separate:
+
+```bash
+./petri_multiturn/run_kindness_full8_targets.sh
+```
+
+Override `AUDITOR`, `JUDGE`, `TRAJECTORIES`, `PARALLEL_SAMPLES`, or `CONFIG` in
+the environment when needed.
