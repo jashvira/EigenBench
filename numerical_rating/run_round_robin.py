@@ -5,9 +5,10 @@ from __future__ import annotations
 import argparse
 import os
 from pathlib import Path
+from typing import Callable
 
 from dotenv import load_dotenv
-from inspect_ai import eval_set
+from inspect_ai import Task, eval_set
 from inspect_ai.util import AdaptiveConcurrency
 
 from numerical_rating.data import load_config, repo_path
@@ -20,10 +21,13 @@ DEFAULT_LOG_DIR = ROOT / "runs/numerical_rating/kindness_1000_round_robin"
 PARTIAL_LOG_ADAPTIVE_CONNECTIONS = AdaptiveConcurrency.model_validate("5-20-50")
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(
+    *,
+    default_log_dir: Path = DEFAULT_LOG_DIR,
+) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default=DEFAULT_CONFIG)
-    parser.add_argument("--log-dir", type=repo_path, default=DEFAULT_LOG_DIR)
+    parser.add_argument("--log-dir", type=repo_path, default=default_log_dir)
     parser.add_argument("--judge", action="append", default=[])
     parser.add_argument("--max-tasks", type=int, default=8)
     parser.add_argument("--connections-per-judge", type=int, default=4)
@@ -32,12 +36,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--http-retries", type=int, default=3)
     parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument("--generation-max-tokens", type=int)
+    parser.add_argument("--limit", type=int)
     parser.add_argument("--cell-manifest", type=repo_path)
     return parser.parse_args()
 
 
-def main() -> int:
-    args = parse_args()
+def run(
+    args: argparse.Namespace,
+    *,
+    task_factory: Callable[..., Task],
+) -> int:
+    """Run one rating task for every selected judge."""
     config = load_config(args.config)
     selected = [
         judge
@@ -54,6 +63,9 @@ def main() -> int:
     os.environ["OPENROUTER_API_KEY"] = key
 
     tasks = []
+    limit = args.limit
+    if limit is not None and args.cell_manifest is not None:
+        raise ValueError("--limit and --cell-manifest cannot be combined")
     for judge in selected:
         max_tokens = (
             args.generation_max_tokens
@@ -65,7 +77,9 @@ def main() -> int:
             task_kwargs["generation_max_tokens"] = max_tokens
         if args.cell_manifest is not None:
             task_kwargs["cell_manifest"] = str(args.cell_manifest)
-        tasks.append(pointwise_constitution_rating(**task_kwargs))
+        if limit is not None:
+            task_kwargs["limit"] = limit
+        tasks.append(task_factory(**task_kwargs))
     success, _ = eval_set(
         tasks=tasks,
         log_dir=str(args.log_dir),
@@ -89,6 +103,10 @@ def main() -> int:
         log_dir_allow_dirty=bool(args.judge or args.cell_manifest),
     )
     return 0 if success else 1
+
+
+def main() -> int:
+    return run(parse_args(), task_factory=pointwise_constitution_rating)
 
 
 if __name__ == "__main__":

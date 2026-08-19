@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -40,6 +41,7 @@ class RatingConfig:
     selection: str
     judge_model: str
     generation_max_tokens: int
+    criterion_generation_max_tokens: int
     generation_temperature: float
     expected_scenarios: int
     expected_models: int
@@ -68,6 +70,13 @@ class RepairedCellManifest:
     cells: tuple[ResponseCell, ...]
 
 
+@dataclass(frozen=True)
+class ConstitutionCriterion:
+    criterion_id: str
+    text: str
+    text_hash: str
+
+
 def repo_path(path: str | Path) -> Path:
     """Resolve a repo-relative path."""
     raw = Path(path).expanduser()
@@ -86,6 +95,15 @@ def provenance_path(path: str | Path) -> str:
 def sha256_text(text: str) -> str:
     """Return a stable short hash for logged text provenance."""
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+
+
+def sha256_file(path: Path) -> str:
+    """Return a stable short hash for a repository data artifact."""
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()[:16]
 
 
 def is_valid_response(value: object) -> bool:
@@ -133,6 +151,7 @@ def load_config(path: str | Path) -> RatingConfig:
         raise ValueError(f"{path} judges must map one-to-one onto response model IDs")
 
     generation = data.get("generation") or {}
+    criterion_generation = data.get("criterion_generation") or {}
     scale = data.get("score_scale") or {}
     return RatingConfig(
         run_id=str(data["run_id"]),
@@ -148,6 +167,9 @@ def load_config(path: str | Path) -> RatingConfig:
         selection=str(data["selection"]),
         judge_model=str(data["judge_model"]),
         generation_max_tokens=int(generation.get("max_tokens", 512)),
+        criterion_generation_max_tokens=int(
+            criterion_generation.get("max_tokens", generation.get("max_tokens", 512))
+        ),
         generation_temperature=float(generation.get("temperature", 0)),
         expected_scenarios=int(data["expected_scenarios"]),
         expected_models=int(data["expected_models"]),
@@ -159,8 +181,38 @@ def load_config(path: str | Path) -> RatingConfig:
     )
 
 
+def load_constitution_criteria(path: Path) -> tuple[ConstitutionCriterion, ...]:
+    """Load stable IDs and text provenance for each constitution criterion."""
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, list) or not all(
+        isinstance(item, str) for item in payload
+    ):
+        raise ValueError(f"{path} must contain a list of constitution criteria")
+
+    criteria = []
+    for position, text in enumerate(payload, start=1):
+        match = re.match(r"Criterion\s+(\d+)\b", text)
+        if match is None:
+            raise ValueError(
+                f"{path} criterion {position} has no explicit criterion number"
+            )
+        number = int(match.group(1))
+        criteria.append(
+            ConstitutionCriterion(
+                criterion_id=f"criterion_{number:02d}",
+                text=text,
+                text_hash=sha256_text(text),
+            )
+        )
+
+    criterion_ids = [criterion.criterion_id for criterion in criteria]
+    if len(criterion_ids) != len(set(criterion_ids)):
+        raise ValueError(f"{path} contains duplicate criterion IDs")
+    return tuple(criteria)
+
+
 def load_constitution_text(path: Path) -> str:
-    """Return the exact constitution text shown to the judge."""
+    """Return the exact constitution text shown to a holistic judge."""
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, list) or not all(
         isinstance(item, str) for item in payload

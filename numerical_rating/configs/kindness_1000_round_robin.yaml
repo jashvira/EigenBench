@@ -11,6 +11,8 @@ judge_model: openrouter/anthropic/claude-sonnet-4
 generation:
   max_tokens: 1024
   temperature: 0
+criterion_generation:
+  max_tokens: 4096
 score_scale:
   min: 1
   max: 10

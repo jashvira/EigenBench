@@ -17,12 +17,26 @@ import zipfile_zstd  # noqa: F401  Enables zstd support in Python's zipfile modu
 from numerical_rating.data import (
     RatingConfig,
     load_config,
+    load_constitution_criteria,
     load_constitution_text,
     provenance_path,
     repo_path,
     sha256_text,
 )
+from numerical_rating.criterion_analysis import (
+    DEFAULT_OUTPUT_DIR as DEFAULT_CRITERION_ANALYSIS,
+)
 from numerical_rating.materialize_eval_log import materialize
+from numerical_rating.round_robin_analysis import (
+    completed_logs as select_completed_logs,
+    eval_log_path,
+)
+from numerical_rating.run_criteria import (
+    CRITERION_PROMPT,
+    criterion_provenance,
+)
+
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = "numerical_rating/configs/kindness_1000_round_robin.yaml"
 DEFAULT_REPAIR_CELLS = (
@@ -36,6 +50,10 @@ DEFAULT_SOURCES = (
     ROOT / "runs/numerical_rating/kindness_1000_round_robin_repairs",
 )
 DEFAULT_OUTPUT = ROOT / "docs/numerical_rating"
+DEFAULT_CRITERION_SOURCE = (
+    ROOT / "runs/numerical_rating/kindness_1000_criterion_round_robin"
+)
+DEFAULT_CRITERION_OUTPUT = ROOT / "docs/numerical_rating_criteria"
 MAX_GITHUB_FILE_BYTES = 100 * 1024 * 1024
 
 
@@ -51,11 +69,17 @@ class SelectedLog:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default=DEFAULT_CONFIG)
+    parser.add_argument(
+        "--rating-mode",
+        choices=("whole_constitution", "criterion_wise"),
+        default="whole_constitution",
+    )
     parser.add_argument("--source", action="append", type=repo_path, default=[])
     parser.add_argument(
         "--repair-cells", type=repo_path, default=DEFAULT_REPAIR_CELLS
     )
-    parser.add_argument("--output-dir", type=repo_path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--output-dir", type=repo_path)
+    parser.add_argument("--generation-max-tokens", type=int)
     return parser.parse_args()
 
 
@@ -162,12 +186,83 @@ def validate_log_sizes(logs: list[SelectedLog]) -> None:
         )
 
 
+def validate_criterion_analysis(
+    logs: list[SelectedLog],
+    *,
+    config: RatingConfig,
+    criteria,
+) -> None:
+    """Bind criterion publication to the completed analysis generation."""
+    result_path = DEFAULT_CRITERION_ANALYSIS / "results.json"
+    if not result_path.is_file():
+        raise FileNotFoundError("Criterion analysis results are missing")
+    result = json.loads(result_path.read_text(encoding="utf-8"))
+    if (
+        result.get("scenario_count") != config.expected_scenarios
+        or result.get("judge_count") != len(config.judges)
+        or result.get("target_count") != config.expected_models
+        or result.get("criterion_count") != len(criteria)
+        or [
+            (entry.get("criterion_id"), entry.get("criterion_text_hash"))
+            for entry in result.get("criteria", [])
+        ]
+        != [
+            (criterion.criterion_id, criterion.text_hash)
+            for criterion in criteria
+        ]
+    ):
+        raise ValueError("Criterion analysis shape or provenance is invalid")
+
+    expected_sources = [
+        {
+            "judge_model": log.judge_model,
+            "path": str(log.path.relative_to(ROOT)),
+            "sha256": sha256_file(log.path)[:16],
+        }
+        for log in logs
+    ]
+    if result.get("source_logs") != expected_sources:
+        raise ValueError("Criterion analysis does not match the selected logs")
+
+
+def ensure_viewer_assets(output_dir: Path) -> None:
+    """Copy the native Inspect viewer shell when publishing to a new directory."""
+    if (output_dir / "index.html").is_file():
+        return
+    if not (DEFAULT_OUTPUT / "index.html").is_file():
+        raise FileNotFoundError("Inspect viewer assets are missing")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        [
+            "rsync",
+            "-a",
+            "--exclude",
+            "logs",
+            f"{DEFAULT_OUTPUT}/",
+            f"{output_dir}/",
+        ],
+        check=True,
+    )
+    (output_dir / "logs").mkdir(exist_ok=True)
+
+
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def copy_public_log(source: Path, target: Path) -> None:
+    """Copy an Inspect log while redacting workstation paths."""
+    private_home = str(Path.home()).encode()
+    with zipfile.ZipFile(source) as source_archive, zipfile.ZipFile(
+        target, "w"
+    ) as target_archive:
+        for entry in source_archive.infolist():
+            payload = source_archive.read(entry).replace(private_home, b"<home>")
+            target_archive.writestr(entry, payload)
 
 
 def materialize_final_logs(
@@ -202,10 +297,18 @@ def publish_final_logs(paths: list[Path], output_dir: Path) -> None:
         stage = Path(work)
         for path in paths:
             target = stage / path.name
-            subprocess.run(["cp", path, target], check=True)
+            copy_public_log(path, target)
+            if target.stat().st_size >= MAX_GITHUB_FILE_BYTES:
+                raise ValueError(
+                    f"Published log exceeds GitHub's file limit: {target.name}"
+                )
         subprocess.run(
             ["rsync", "-a", "--delete", f"{stage}/", f"{logs_dir}/"], check=True
         )
+        expected_hashes = {
+            path.name: sha256_file(stage / path.name)
+            for path in paths
+        }
     from inspect_ai.log import write_log_dir_manifest
 
     write_log_dir_manifest(str(logs_dir), filename="listing.json")
@@ -218,15 +321,67 @@ def publish_final_logs(paths: list[Path], output_dir: Path) -> None:
         path.name: sha256_file(logs_dir / path.name)
         for path in paths
     }
-    source_hashes = {path.name: sha256_file(path) for path in paths}
-    if published_hashes != source_hashes:
-        raise ValueError("Published logs differ from materialized logs")
+    if published_hashes != expected_hashes:
+        raise ValueError("Published logs differ from the sanitized staging logs")
 
 
 def main() -> None:
     args = parse_args()
     config = load_config(args.config)
+    if args.rating_mode == "criterion_wise":
+        criteria = load_constitution_criteria(config.constitution)
+        generation_max_tokens = (
+            args.generation_max_tokens
+            if args.generation_max_tokens is not None
+            else config.criterion_generation_max_tokens
+        )
+        logs = select_completed_logs(
+            args.source or [DEFAULT_CRITERION_SOURCE],
+            config,
+            config_name=args.config,
+            expected_samples=config.expected_response_cells,
+            task_name="pointwise_criterion_rating",
+            run_id=f"{config.run_id}_criteria",
+            prompt_path=CRITERION_PROMPT,
+            generation_limits={
+                judge.model: generation_max_tokens for judge in config.judges
+            },
+            required_metadata={
+                "rating_mode": "criterion_wise",
+                "criteria": criterion_provenance(criteria),
+                "criterion_count": len(criteria),
+            },
+        )
+        selected = [
+            SelectedLog(
+                judge_model=judge.model,
+                path=eval_log_path(log),
+                mtime=float(log.mtime or 0),
+            )
+            for judge, log in zip(config.judges, logs)
+        ]
+        validate_log_sizes(selected)
+        validate_criterion_analysis(
+            selected,
+            config=config,
+            criteria=criteria,
+        )
+        output_dir = args.output_dir or DEFAULT_CRITERION_OUTPUT
+        ensure_viewer_assets(output_dir)
+        publish_final_logs([log.path for log in selected], output_dir)
+        print(
+            json.dumps(
+                {
+                    "output_dir": str(output_dir),
+                    "logs": [log.path.name for log in selected],
+                },
+                indent=2,
+            )
+        )
+        return
+
     sources = args.source or list(DEFAULT_SOURCES)
+    output_dir = args.output_dir or DEFAULT_OUTPUT
     base_logs = complete_logs(
         config,
         sources,
@@ -249,12 +404,12 @@ def main() -> None:
         final_logs = materialize_final_logs(
             base_logs, repair_logs, final_dir, args.repair_cells
         )
-        publish_final_logs(final_logs, args.output_dir)
+        publish_final_logs(final_logs, output_dir)
 
     print(
         json.dumps(
             {
-                "output_dir": str(args.output_dir),
+                "output_dir": str(output_dir),
                 "logs": [path.name for path in final_logs],
             },
             indent=2,

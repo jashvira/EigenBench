@@ -196,6 +196,7 @@ class RepairSelectionTest(unittest.TestCase):
             http_retries=1,
             timeout=10,
             generation_max_tokens=None,
+            limit=None,
             cell_manifest=repo_path(relative_manifest),
         )
         with (

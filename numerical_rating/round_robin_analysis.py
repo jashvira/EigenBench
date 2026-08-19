@@ -11,7 +11,8 @@ import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, TextIO
+from typing import Iterator, Mapping, TextIO
+from urllib.parse import unquote, urlparse
 
 import numpy as np
 from inspect_ai.log import (
@@ -24,9 +25,9 @@ from scipy.stats import kendalltau, spearmanr
 
 from pipeline.utils.comparisons import (
     extract_comparisons_with_ties_criteria,
-    handle_inconsistencies_with_ties_criteria,
 )
 from numerical_rating.data import (
+    ConstitutionCriterion,
     RatingConfig,
     load_config,
     load_constitution_text,
@@ -36,6 +37,7 @@ from numerical_rating.data import (
     repo_path,
     sha256_text,
 )
+from numerical_rating.trust import TrustResult, compute_trust, eigentrust_elo
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,7 +65,7 @@ PUBLISHED_META = ROOT / "data/output/valuearena/raw/runs/8_models/kindness/meta.
 SCORER_NAME = "whole_constitution_score"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Rating:
     judge_id: int
     judge_name: str
@@ -74,19 +76,8 @@ class Rating:
     score: float
     rationale: str
     response_hash: str
-
-
-@dataclass(frozen=True)
-class TrustResult:
-    scenario_count: int
-    sigma: np.ndarray
-    sigma_used: np.ndarray
-    affinity: np.ndarray
-    trust_matrix: np.ndarray
-    one_step_trust: np.ndarray
-    trust: np.ndarray
-    iterations: int | None
-    stationary_solver: str
+    dimension_id: str = "whole_constitution"
+    dimension_hash: str = ""
 
 
 def parsed_rationale(parsed: object, explanation: str | None) -> str:
@@ -103,6 +94,16 @@ def parsed_rationale(parsed: object, explanation: str | None) -> str:
     return explanation or ""
 
 
+def eval_log_path(info: EvalLogInfo) -> Path:
+    """Return the local path represented by an Inspect log reference."""
+    parsed = urlparse(info.name)
+    if parsed.scheme == "file":
+        return Path(unquote(parsed.path))
+    if parsed.scheme:
+        raise ValueError(f"Inspect log is not local: {info.name}")
+    return Path(info.name)
+
+
 def completed_logs(
     log_dirs: list[Path],
     config: RatingConfig,
@@ -110,10 +111,16 @@ def completed_logs(
     config_name: str,
     expected_samples: int,
     cell_manifest: Path | None = None,
+    task_name: str = "pointwise_constitution_rating",
+    run_id: str | None = None,
+    prompt_path: Path | None = None,
+    generation_limits: Mapping[str, int] | None = None,
+    required_metadata: Mapping[str, object] | None = None,
 ) -> list[EvalLogInfo]:
     """Select the newest complete log for each configured judge."""
     constitution_hash = sha256_text(load_constitution_text(config.constitution))
-    prompt_hash = sha256_text(config.prompt.read_text(encoding="utf-8"))
+    prompt = prompt_path or config.prompt
+    prompt_hash = sha256_text(prompt.read_text(encoding="utf-8"))
     expected_manifest = (
         str(cell_manifest.relative_to(ROOT)) if cell_manifest is not None else None
     )
@@ -123,7 +130,7 @@ def completed_logs(
         else None
     )
     expected_config = provenance_path(config_name)
-    generation_limits = {
+    expected_generation_limits = generation_limits or {
         judge.model: (
             judge.max_tokens
             if judge.max_tokens is not None
@@ -131,6 +138,7 @@ def completed_logs(
         )
         for judge in config.judges
     }
+    metadata_requirements = dict(required_metadata or {})
     selected: dict[str, EvalLogInfo] = {}
     for log_dir in log_dirs:
         for info in list_eval_logs(str(log_dir), formats=["eval", "json"]):
@@ -142,13 +150,13 @@ def completed_logs(
                 judge_model
                 and log.status == "success"
                 and not log.invalidated
-                and log.eval.task == "pointwise_constitution_rating"
-                and metadata.get("run_id") == config.run_id
+                and log.eval.task == task_name
+                and metadata.get("run_id") == (run_id or config.run_id)
                 and metadata.get("config") == expected_config
                 and metadata.get("constitution_hash") == constitution_hash
                 and metadata.get("prompt_hash") == prompt_hash
                 and metadata.get("generation_max_tokens")
-                == generation_limits.get(str(judge_model))
+                == expected_generation_limits.get(str(judge_model))
                 and metadata.get("generation_temperature")
                 == config.generation_temperature
                 and metadata.get("cell_manifest") == expected_manifest
@@ -156,6 +164,10 @@ def completed_logs(
                 and results
                 and results.total_samples == expected_samples
                 and results.completed_samples == expected_samples
+                and all(
+                    metadata.get(key) == value
+                    for key, value in metadata_requirements.items()
+                )
             ):
                 judge_model = str(judge_model)
                 current = selected.get(judge_model)
@@ -171,8 +183,23 @@ def completed_logs(
     return [selected[judge.model] for judge in config.judges]
 
 
-def load_ratings(logs: list[EvalLogInfo], config: RatingConfig) -> list[Rating]:
-    """Extract one parsed numerical score from every Inspect sample."""
+def load_ratings(
+    logs: list[EvalLogInfo],
+    config: RatingConfig,
+    *,
+    scorer_name: str = SCORER_NAME,
+    dimensions: tuple[ConstitutionCriterion, ...] = (),
+    require_current_responses: bool = False,
+) -> list[Rating]:
+    """Extract dimensioned numerical ratings from Inspect samples."""
+    expected_dimensions = [dimension.criterion_id for dimension in dimensions]
+    dimension_by_id = {
+        dimension.criterion_id: dimension for dimension in dimensions
+    }
+    response_cells = {
+        (cell.scenario_index, cell.model_id): cell
+        for cell in load_response_cells(config)
+    }
     ratings: list[Rating] = []
     for info in logs:
         for sample in read_eval_log_samples(
@@ -180,8 +207,8 @@ def load_ratings(logs: list[EvalLogInfo], config: RatingConfig) -> list[Rating]:
             all_samples_required=True,
             exclude_fields={"events", "events_data", "store", "attachments"},
         ):
-            score = (sample.scores or {}).get(SCORER_NAME)
-            if score is None or not isinstance(score.value, (int, float)):
+            score = (sample.scores or {}).get(scorer_name)
+            if score is None:
                 raise ValueError(f"Missing numerical score in {info.name}: {sample.id}")
             sample_metadata = sample.metadata or {}
             score_metadata = score.metadata or {}
@@ -219,19 +246,99 @@ def load_ratings(logs: list[EvalLogInfo], config: RatingConfig) -> list[Rating]:
                 raise ValueError(
                     f"Target metadata mismatch in {info.name}: {sample.id}"
                 )
-            ratings.append(
-                Rating(
-                    judge_id=judge_id,
-                    judge_name=str(metadata["judge_name"]),
-                    judge_model=str(metadata["judge_model"]),
-                    scenario_index=int(metadata["scenario_index"]),
-                    model_id=model_id,
-                    model_name=str(metadata["model_name"]),
-                    score=float(score.value),
-                    rationale=parsed_rationale(parsed, score.explanation),
-                    response_hash=str(metadata["response_hash"]),
+            scenario_index = int(metadata["scenario_index"])
+            response_cell = response_cells.get((scenario_index, model_id))
+            if response_cell is None:
+                raise ValueError(
+                    f"Unknown response cell in {info.name}: {sample.id}"
                 )
-            )
+            response_hash = str(metadata["response_hash"])
+            if require_current_responses and response_hash != response_cell.response_hash:
+                raise ValueError(
+                    f"Stale response in {info.name}: {sample.id}"
+                )
+
+            if dimensions:
+                if metadata.get("criterion_ids") != expected_dimensions:
+                    raise ValueError(
+                        f"Criterion IDs do not match in {info.name}: {sample.id}"
+                    )
+                if not isinstance(score.value, dict):
+                    raise ValueError(
+                        f"Criterion score is not a mapping in {info.name}: {sample.id}"
+                    )
+                try:
+                    rationales = json.loads(score.explanation or "")
+                except json.JSONDecodeError as exc:
+                    raise ValueError(
+                        f"Invalid criterion rationales in {info.name}: {sample.id}"
+                    ) from exc
+                if (
+                    list(score.value) != expected_dimensions
+                    or not isinstance(rationales, dict)
+                    or list(rationales) != expected_dimensions
+                ):
+                    raise ValueError(
+                        f"Criterion score shape does not match in {info.name}: "
+                        f"{sample.id}"
+                    )
+                score_items = [
+                    (
+                        dimension_id,
+                        score.value[dimension_id],
+                        rationales[dimension_id],
+                    )
+                    for dimension_id in expected_dimensions
+                ]
+            else:
+                if not isinstance(score.value, (int, float)):
+                    raise ValueError(
+                        f"Score is not numeric in {info.name}: {sample.id}"
+                    )
+                score_items = [
+                    (
+                        "whole_constitution",
+                        score.value,
+                        parsed_rationale(parsed, score.explanation),
+                    )
+                ]
+
+            for dimension_id, value, rationale in score_items:
+                if (
+                    isinstance(value, bool)
+                    or not isinstance(value, (int, float))
+                    or not np.isfinite(float(value))
+                    or not config.score_min <= float(value) <= config.score_max
+                ):
+                    raise ValueError(
+                        f"Invalid {dimension_id} score in {info.name}: {sample.id}"
+                    )
+                if dimensions and (
+                    not isinstance(rationale, str) or not rationale.strip()
+                ):
+                    raise ValueError(
+                        f"Invalid {dimension_id} rationale in {info.name}: "
+                        f"{sample.id}"
+                    )
+                ratings.append(
+                    Rating(
+                        judge_id=judge_id,
+                        judge_name=str(metadata["judge_name"]),
+                        judge_model=str(metadata["judge_model"]),
+                        scenario_index=scenario_index,
+                        model_id=model_id,
+                        model_name=str(metadata["model_name"]),
+                        score=float(value),
+                        rationale=rationale,
+                        response_hash=response_hash,
+                        dimension_id=dimension_id,
+                        dimension_hash=(
+                            dimension_by_id[dimension_id].text_hash
+                            if dimensions
+                            else ""
+                        ),
+                    )
+                )
     return ratings
 
 
@@ -299,9 +406,17 @@ def reconcile_ratings(
 
 
 def rating_tensor(
-    ratings: list[Rating], config: RatingConfig
+    ratings: list[Rating],
+    config: RatingConfig,
+    *,
+    dimension_id: str = "whole_constitution",
 ) -> tuple[np.ndarray, list[int]]:
     """Build and validate the judge-by-scenario-by-target rating tensor."""
+    ratings = [
+        rating for rating in ratings if rating.dimension_id == dimension_id
+    ]
+    if not ratings:
+        raise ValueError(f"No ratings found for dimension: {dimension_id}")
     scenario_indices = sorted({rating.scenario_index for rating in ratings})
     scenario_position = {
         scenario_index: position
@@ -348,107 +463,6 @@ def rating_tensor(
     return tensor, scenario_indices
 
 
-def softmax_rows(
-    values: np.ndarray, temperature: float, zero_diagonal: bool
-) -> np.ndarray:
-    if temperature <= 0:
-        raise ValueError("temperature must be positive")
-    logits = values / temperature
-    if zero_diagonal:
-        logits = logits.copy()
-        np.fill_diagonal(logits, -np.inf)
-    logits -= np.max(logits, axis=1, keepdims=True)
-    weights = np.exp(logits)
-    return weights / weights.sum(axis=1, keepdims=True)
-
-
-def stationary_trust(
-    matrix: np.ndarray, tolerance: float = 1e-12
-) -> tuple[np.ndarray, int | None, str]:
-    trust = np.full(matrix.shape[0], 1.0 / matrix.shape[0])
-    for iteration in range(1, 10_001):
-        next_trust = trust @ matrix
-        if np.linalg.norm(next_trust - trust, ord=1) < tolerance:
-            return next_trust, iteration, "power_iteration"
-        trust = next_trust
-
-    system = matrix.T - np.eye(matrix.shape[0])
-    system[-1] = 1.0
-    target = np.zeros(matrix.shape[0])
-    target[-1] = 1.0
-    solved = np.linalg.solve(system, target)
-    if np.any(solved < -1e-10):
-        raise RuntimeError("Stationary linear solve produced negative trust")
-    solved = np.clip(solved, 0.0, None)
-    solved /= solved.sum()
-    return solved, None, "linear_solve"
-
-
-def compute_trust(
-    ratings: np.ndarray,
-    *,
-    temperature: float = 1.0,
-    zero_diagonal: bool = False,
-    standardize: bool = True,
-    sigma_floor_ratio: float | None = None,
-) -> TrustResult:
-    """Compute direct judge-target affinities and their EigenTrust vector."""
-    judges, scenarios, models = ratings.shape
-    if judges != models:
-        raise ValueError(
-            "EigenTrust requires the same judge and target population size"
-        )
-
-    if zero_diagonal:
-        if models <= 2:
-            raise ValueError("Self-score exclusion requires at least three models")
-        off_diagonal = ~np.eye(models, dtype=bool)
-        mask = off_diagonal[:, None, :]
-        off_diagonal_mean = np.where(mask, ratings, 0.0).sum(
-            axis=2, keepdims=True
-        ) / (models - 1)
-        centered = np.where(mask, ratings - off_diagonal_mean, 0.0)
-        variance_denominator = scenarios * (models - 2)
-    else:
-        centered = ratings - ratings.mean(axis=2, keepdims=True)
-        variance_denominator = scenarios * (models - 1)
-    if not np.allclose(centered.sum(axis=2), 0.0, atol=1e-10):
-        raise AssertionError("Scenario-centred ratings do not sum to zero")
-    sigma = np.sqrt(np.square(centered).sum(axis=(1, 2)) / variance_denominator)
-    if np.any(sigma == 0):
-        raise ValueError("At least one judge has zero residual score variance")
-
-    sigma_used = sigma.copy() if standardize else np.ones_like(sigma)
-    if standardize and sigma_floor_ratio is not None:
-        floor = sigma_floor_ratio * float(np.median(sigma))
-        sigma_used = np.maximum(sigma_used, floor)
-
-    standardized = centered / sigma_used[:, None, None]
-    affinity = standardized.mean(axis=1)
-    if zero_diagonal:
-        np.fill_diagonal(affinity, 0.0)
-    if not np.allclose(affinity.sum(axis=1), 0.0, atol=1e-10):
-        raise AssertionError("Judge affinity rows do not sum to zero")
-    trust_matrix = softmax_rows(affinity, temperature, zero_diagonal)
-    if not np.allclose(trust_matrix.sum(axis=1), 1.0, atol=1e-12):
-        raise AssertionError("Trust matrix rows do not sum to one")
-    one_step = np.full(judges, 1.0 / judges) @ trust_matrix
-    trust, iterations, stationary_solver = stationary_trust(trust_matrix)
-    if np.linalg.norm(trust @ trust_matrix - trust, ord=1) > 1e-10:
-        raise AssertionError("Stationary trust vector failed its residual check")
-    return TrustResult(
-        scenario_count=scenarios,
-        sigma=sigma,
-        sigma_used=sigma_used,
-        affinity=affinity,
-        trust_matrix=trust_matrix,
-        one_step_trust=one_step,
-        trust=trust,
-        iterations=iterations,
-        stationary_solver=stationary_solver,
-    )
-
-
 def published_scenarios(config: RatingConfig) -> list[int]:
     """Return scenario IDs that contributed to the published pairwise fit."""
     evaluations = [
@@ -463,7 +477,8 @@ def published_scenarios(config: RatingConfig) -> list[int]:
         evaluations,
         num_criteria=criterion_count,
     )
-    comparisons = handle_inconsistencies_with_ties_criteria(comparisons)
+    # Tie reconciliation changes choices, not which scenarios supplied valid
+    # judgments, so support is read before repeated passes are flattened.
     return sorted({int(comparison[1]) for comparison in comparisons})
 
 
@@ -493,10 +508,6 @@ def published_trust(config: RatingConfig) -> np.ndarray:
     if np.any(trust < 0) or trust.sum() <= 0:
         raise ValueError("Published EigenTrust vector must be nonnegative and nonzero")
     return trust / trust.sum()
-
-
-def eigentrust_elo(trust: np.ndarray) -> np.ndarray:
-    return 1500.0 + 400.0 * np.log10(len(trust) * np.clip(trust, 1e-12, None))
 
 
 def bootstrap_intervals(
@@ -601,7 +612,10 @@ def write_ratings(path: Path, ratings: list[Rating]) -> None:
     with atomic_text_output(path, newline="") as output:
         writer = csv.DictWriter(output, fieldnames=fields)
         writer.writeheader()
-        writer.writerows(vars(rating) for rating in ratings)
+        writer.writerows(
+            {field: getattr(rating, field) for field in fields}
+            for rating in ratings
+        )
 
 
 def write_json(path: Path, value: object) -> None:
@@ -624,9 +638,9 @@ def write_output_generation(
     *,
     ratings: list[Rating],
     result: dict[str, object],
-    rankings: list[dict[str, object]],
+    rankings: list[dict[str, object]] | None = None,
 ) -> None:
-    """Commit the three analysis artifacts as one recoverable directory swap."""
+    """Commit one analysis generation as a recoverable directory swap."""
     output_dir.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(
         dir=output_dir.parent,
@@ -637,7 +651,8 @@ def write_output_generation(
         staged.mkdir()
         write_ratings(staged / "ratings.csv", ratings)
         write_json(staged / "results.json", result)
-        write_rankings(staged / "rankings.csv", rankings)
+        if rankings is not None:
+            write_rankings(staged / "rankings.csv", rankings)
 
         previous = transaction_dir / "previous"
         if output_dir.exists():
