@@ -1,0 +1,66 @@
+\documentclass[10pt]{article}
+
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.4em}
+\setlist[itemize]{leftmargin=1.6em,itemsep=0.25em,topsep=0.2em}
+
+\begin{document}
+
+\section*{Scenario-Gated DBM}
+
+\textbf{Current DBM.}
+
+\[
+r_{ijC}=\langle u_i\odot\phi_C,v_j\rangle,\qquad
+\left[r_{ijC},\;\frac{r_{ijC}+r_{ikC}}{2}+\ell_i,\;r_{ikC}\right],
+\qquad
+\mathcal L_{\mathrm{base}}=\operatorname{CE}(\text{logits},\text{trit}).
+\]
+
+\textbf{Scenario gate.} A frozen text embedding $z_s$ produces a positive per-axis gate and tie head:
+
+\[
+g_s=\exp(Wz_s),\qquad b_s=w_b^\top z_s,\qquad
+r_{ijCs}=\langle u_i\odot\phi_C\odot g_s,v_j\rangle.
+\]
+
+\[
+\text{logits}_{ijkCs}
+=\left[r_{ijCs},\;\frac{r_{ijCs}+r_{ikCs}}{2}+\ell_i+b_s,\;r_{ikCs}\right],
+\qquad
+\mathcal L_{\mathrm{trit}}=\operatorname{CE}(\text{logits},\text{trit}).
+\]
+
+Centred logits are $[(r_j-r_k)/2,\;\ell_i+b_s,\;-(r_j-r_k)/2]$: $g_s$ selects axes; $b_s$ separates the prompt's tie rate from the judge's $\ell_i$. Positive $g_s$ scales axes without changing their signs.
+
+% \begin{itemize}
+%     \item \textbf{Structure.} $g_s$ reweights axes; $b_s$ changes tie rates without favouring either model. Share $g_s$ across constitutions: a free $g(s,C)$ could absorb $\phi_C$.
+%     \item \textbf{Capacity.} Whiten and mean-centre $z_s$ to 128--384 dimensions. No bias keeps the average gate and tie shift at zero. Low-rank $W=AB$, $r<d$, and row sparsity limit which axes can change.
+%     \item \textbf{Router.} $R(s,C)=\langle g_s,|\phi_C|\rangle$ scores prompt--constitution match, independent of judge and model pair. Select using this score and judge/model uncertainty. Cards $\to$ LLM check $\to$ gate rank $\to$ judge jobs.
+%     \item \textbf{Limit.} $g_s$ measures model separation, not topic match. Card-live/gate-dead = installed value or bad prompt; card-dead/gate-live = behavioural signal missed by text.
+%     \item \textbf{Build.} T0: freeze $u,v,\phi$; train $W,w_b$ with held-out scenarios; keep only if loss and calibration improve and gates track topic, not template. T1: use the frozen gate for checks and selection. T2: train jointly only if metrics improve and geometry and residual flags remain stable.
+%     \item \textbf{Checks.} The shared gate cannot hide one model's strange response, but can shrink a whole prompt or cluster. Compare residuals overall, by cluster, and by model. If it underfits, try a small constitution correction on the same axes; otherwise split the axis.
+% \end{itemize}
+
+\section*{Other training targets}
+
+\textbf{Numerical ratings.} Predict centred ratings, scaled per judge:
+
+\[
+\widetilde y_{ijCs}
+=\frac{y_{ijCs}-\frac{1}{M}\sum_k y_{ikCs}}{\kappa_i},
+\qquad
+\widehat y_{ijCs}=\langle u_i\odot\phi_C\odot g_s,v_j-\bar v\rangle,
+\qquad
+\mathcal L_{\mathrm{rating}}=(\widehat y_{ijCs}-\widetilde y_{ijCs})^2.
+\]
+
+Fit scenario-level ratings; averaging over $s$ removes the signal for $g_s$.
+
+\end{document}

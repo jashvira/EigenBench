@@ -34,3 +34,13 @@ notebooks/Personas.ipynb
 
 valuearena/
 pipeline/space/
+
+# Local evaluation logs and generated Scenario-Gated DBM note artifacts
+/logs/
+/notes/scenario_gated_dbm.aux
+/notes/scenario_gated_dbm.fdb_latexmk
+/notes/scenario_gated_dbm.fls
+/notes/scenario_gated_dbm.log
+/notes/scenario_gated_dbm.out
+/notes/scenario_gated_dbm.pdf
+/notes/scenario_gated_dbm.synctex.gz

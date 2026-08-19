@@ -5,18 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 
-ASYMMETRIC_FORMAT_VERSION = "asymmetric-retrieval-v1"
-GEMINI_QUERY_INSTRUCTION = (
+ASYMMETRIC_FORMAT_VERSION = "asymmetric-retrieval-v2-shared-query-instruction"
+QUERY_INSTRUCTION = (
     "Retrieve constitution criteria relevant for judging assistant answers to this scenario. "
     "A criterion is relevant if two plausible assistant answers could differ on it and that difference "
     "could affect the preference judgement. Do not retrieve criteria that are merely thematically related."
 )
-QWEN_QUERY_INSTRUCTION = (
-    "Given a natural user scenario, retrieve constitution criteria that could change the preference "
-    "judgement between plausible assistant answers, not criteria that are merely thematically related."
-)
-
-
 def is_gemini(model: str) -> bool:
     """Return whether the OpenRouter model slug is a Gemini embedding model."""
     return "gemini" in model.lower()
@@ -40,9 +34,9 @@ def card_text(doc: dict[str, Any]) -> str:
 def format_scenario_query(model: str, scenario: str) -> str:
     """Format a scenario as the query side of asymmetric retrieval."""
     if is_gemini(model):
-        return f"task: search result | query: {GEMINI_QUERY_INSTRUCTION} Scenario: {scenario}"
+        return f"task: search result | query: {QUERY_INSTRUCTION} Scenario: {scenario}"
     if is_qwen(model):
-        return f"Instruct: {QWEN_QUERY_INSTRUCTION}\nQuery: {scenario}"
+        return f"Instruct: {QUERY_INSTRUCTION}\nQuery: {scenario}"
     return scenario
 
 
