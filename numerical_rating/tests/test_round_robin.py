@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -24,6 +27,17 @@ from numerical_rating.round_robin_analysis import (
     published_scenarios,
     published_trust,
     reconcile_ratings,
+)
+from numerical_rating.scenario_uncertainty import (
+    PairwiseFit,
+    _btd_loss_gradient,
+    _load_bootstrap_checkpoint,
+    _reconcile_pass_comparisons,
+    _save_bootstrap_checkpoint,
+    fit_pairwise_btd,
+    fit_pairwise_btd_multistart,
+    jackknife_interval,
+    load_pairwise_data,
 )
 
 
@@ -155,6 +169,265 @@ class TrustMathTest(unittest.TestCase):
         for lower, upper in intervals.values():
             self.assertTrue(np.isfinite([lower, upper]).all())
             self.assertLessEqual(lower, upper)
+
+    def test_btd_gradient_matches_finite_difference(self) -> None:
+        rows = np.asarray(
+            [[0, 1, 2, 1], [1, 2, 0, 0], [2, 0, 1, 2]], dtype=np.int64
+        )
+        parameters = np.random.default_rng(5).normal(size=15) * 0.1
+        _, analytic = _btd_loss_gradient(
+            parameters, rows, num_models=3, dimension=2
+        )
+        numerical = np.empty_like(analytic)
+        step = 1e-6
+        for index in range(len(parameters)):
+            upper = parameters.copy()
+            lower = parameters.copy()
+            upper[index] += step
+            lower[index] -= step
+            upper_loss, _ = _btd_loss_gradient(
+                upper, rows, num_models=3, dimension=2
+            )
+            lower_loss, _ = _btd_loss_gradient(
+                lower, rows, num_models=3, dimension=2
+            )
+            numerical[index] = (upper_loss - lower_loss) / (2 * step)
+        np.testing.assert_allclose(analytic, numerical, atol=1e-7)
+
+    def test_btd_fit_rejects_optimizer_failure(self) -> None:
+        failed = SimpleNamespace(
+            fun=1.0,
+            x=np.zeros(40),
+            success=False,
+            nit=300,
+            message="iteration limit",
+        )
+        with patch(
+            "numerical_rating.scenario_uncertainty.minimize",
+            return_value=failed,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "iteration limit"):
+                fit_pairwise_btd(
+                    np.asarray([[0, 1, 2, 1]], dtype=np.int64),
+                    initial=np.zeros(40),
+                )
+
+    def test_transpose_pair_is_reconciled_within_collection_pass(self) -> None:
+        rows = [
+            [0, 4, 3, 1, 2, 1],
+            [0, 4, 3, 2, 1, 1],
+        ]
+
+        cleaned = _reconcile_pass_comparisons(rows)
+
+        self.assertEqual(len(cleaned), 2)
+        self.assertEqual([row[-1] for row in cleaned], [0, 0])
+
+    def test_corrected_pass_rejects_unidentified_repeats(self) -> None:
+        rows = [
+            [0, 4, 3, 1, 2, 1],
+            [0, 4, 3, 2, 1, 2],
+            [0, 4, 3, 1, 2, 1],
+            [0, 4, 3, 2, 1, 2],
+        ]
+
+        with self.assertRaisesRegex(ValueError, "Ambiguous rows"):
+            _reconcile_pass_comparisons(rows)
+
+    def test_corrected_cleaning_exactly_deduplicates_raw_records(self) -> None:
+        evaluation = {
+            "judge response": "<criterion_1_choice>1</criterion_1_choice>",
+            "eval1 response": "left",
+            "eval2 response": "right",
+            "eval1 reflection": "left reflection",
+            "eval2 reflection": "right reflection",
+            "constitution": "criterion",
+            "scenario": "scenario",
+            "scenario_index": 7,
+            "judge": 0,
+            "eval1": 1,
+            "eval2": 2,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "evaluations.jsonl"
+            path.write_text(
+                json.dumps(evaluation) + "\n" + json.dumps(evaluation) + "\n",
+                encoding="utf-8",
+            )
+            data = load_pairwise_data(path, num_criteria=1, cleaning="corrected")
+
+        self.assertEqual(data.diagnostics["exact_duplicates_removed"], 1)
+        self.assertEqual(data.diagnostics["retained_criterion_rows"], 1)
+        self.assertEqual(data.blocks[7].shape, (1, 4))
+
+    def test_pairwise_cleaning_defaults_to_repeat_preserving(self) -> None:
+        evaluation = {
+            "judge response": "<criterion_1_choice>1</criterion_1_choice>",
+            "eval1 response": "left",
+            "eval2 response": "right",
+            "eval1 reflection": "left reflection",
+            "eval2 reflection": "right reflection",
+            "constitution": "criterion",
+            "scenario": "scenario",
+            "scenario_index": 7,
+            "judge": 0,
+            "eval1": 1,
+            "eval2": 2,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "evaluations.jsonl"
+            path.write_text(json.dumps(evaluation) + "\n", encoding="utf-8")
+            data = load_pairwise_data(path, num_criteria=1)
+
+        self.assertEqual(data.diagnostics["cleaning"], "corrected")
+
+    def test_corrected_cleaning_preserves_distinct_collection_passes(self) -> None:
+        def evaluation(
+            first: int,
+            second: int,
+            *,
+            suffix: str,
+            choice: int,
+        ) -> dict:
+            return {
+                "judge response": (
+                    f"<criterion_1_choice>{choice}</criterion_1_choice>"
+                ),
+                "eval1 response": f"response-{first}-{suffix}",
+                "eval2 response": f"response-{second}-{suffix}",
+                "eval1 reflection": f"reflection-{first}-{suffix}",
+                "eval2 reflection": f"reflection-{second}-{suffix}",
+                "constitution": "criterion",
+                "scenario": "scenario",
+                "scenario_index": 7,
+                "judge": 0,
+                "eval1": first,
+                "eval2": second,
+            }
+
+        records = []
+        for suffix in ("first-pass", "second-pass"):
+            records.extend(
+                (
+                    evaluation(1, 2, suffix=suffix, choice=1),
+                    evaluation(2, 1, suffix=suffix, choice=2),
+                )
+            )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "evaluations.jsonl"
+            path.write_text(
+                "".join(json.dumps(record) + "\n" for record in records),
+                encoding="utf-8",
+            )
+            data = load_pairwise_data(path, num_criteria=1, cleaning="corrected")
+
+        self.assertEqual(data.diagnostics["identified_passes"], 2)
+        self.assertEqual(data.diagnostics["retained_criterion_rows"], 4)
+        self.assertEqual(data.blocks[7].shape, (4, 4))
+        self.assertEqual(data.blocks[7][:, -1].tolist(), [1, 2, 1, 2])
+
+    def test_multistart_chooses_lowest_loss_stable_fit(self) -> None:
+        first = PairwiseFit(np.zeros(40), np.full(8, 0.125), 1.1, 4)
+        second = PairwiseFit(np.ones(40), np.full(8, 0.125), 1.0, 5)
+        with patch(
+            "numerical_rating.scenario_uncertainty.fit_pairwise_btd",
+            side_effect=[first, second],
+        ):
+            fit = fit_pairwise_btd_multistart(
+                np.asarray([[0, 1, 2, 1]], dtype=np.int64),
+                initials=[np.zeros(40), np.ones(40)],
+            )
+
+        self.assertEqual(fit.loss, 1.0)
+        self.assertEqual(fit.best_start, 1)
+        self.assertEqual(fit.successful_starts, 2)
+
+    def test_multistart_rejects_disagreeing_near_optima(self) -> None:
+        trust_a = np.full(8, 0.125)
+        trust_b = trust_a.copy()
+        trust_b[:2] += [0.01, -0.01]
+        first = PairwiseFit(np.zeros(40), trust_a, 1.0, 4)
+        second = PairwiseFit(np.ones(40), trust_b, 1.0 + 1e-9, 5)
+        with patch(
+            "numerical_rating.scenario_uncertainty.fit_pairwise_btd",
+            side_effect=[first, second],
+        ):
+            with self.assertRaisesRegex(RuntimeError, "incompatible trust"):
+                fit_pairwise_btd_multistart(
+                    np.asarray([[0, 1, 2, 1]], dtype=np.int64),
+                    initials=[np.zeros(40), np.ones(40)],
+                )
+
+    def test_multistart_can_flag_disagreement_without_dropping_draw(self) -> None:
+        trust_a = np.full(8, 0.125)
+        trust_b = trust_a.copy()
+        trust_b[:2] += [0.01, -0.01]
+        first = PairwiseFit(np.zeros(40), trust_a, 1.0, 4)
+        second = PairwiseFit(np.ones(40), trust_b, 1.0 + 1e-9, 5)
+        with patch(
+            "numerical_rating.scenario_uncertainty.fit_pairwise_btd",
+            side_effect=[first, second],
+        ):
+            fit = fit_pairwise_btd_multistart(
+                np.asarray([[0, 1, 2, 1]], dtype=np.int64),
+                initials=[np.zeros(40), np.ones(40)],
+                reject_unstable=False,
+            )
+
+        self.assertFalse(fit.stable_near_optima)
+        self.assertAlmostEqual(fit.max_near_optimal_trust_l1, 0.02)
+
+    def test_bootstrap_checkpoint_is_bound_to_input_fingerprint(self) -> None:
+        numerical = np.full((2, 8), np.nan)
+        pairwise = np.full((2, 8), np.nan)
+        numerical[0] = 0.125
+        pairwise[0] = 0.125
+        completed = np.asarray([True, False])
+        diagnostics = [{"draw": 0}, None]
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            _save_bootstrap_checkpoint(
+                output,
+                numerical_draws=numerical,
+                pairwise_draws=pairwise,
+                completed=completed,
+                diagnostics=diagnostics,
+                seed=42,
+                input_fingerprint="expected",
+            )
+            loaded = _load_bootstrap_checkpoint(
+                output,
+                bootstrap_samples=2,
+                seed=42,
+                input_fingerprint="expected",
+            )
+            with self.assertRaisesRegex(ValueError, "does not match"):
+                _load_bootstrap_checkpoint(
+                    output,
+                    bootstrap_samples=2,
+                    seed=42,
+                    input_fingerprint="changed",
+                )
+
+        self.assertIsNotNone(loaded)
+        np.testing.assert_array_equal(loaded[2], completed)
+
+    def test_unequal_delete_group_jackknife_uses_group_sizes(self) -> None:
+        point = np.asarray([0.5])
+        leave_out = np.asarray([[0.4], [0.6]])
+
+        estimate, standard_error, lower, upper = jackknife_interval(
+            point,
+            leave_out,
+            omitted_sizes=np.asarray([1, 2]),
+            total_size=3,
+        )
+
+        # h=(3, 1.5), so pseudovalues are 0.7 and 0.45.
+        np.testing.assert_allclose(estimate, [0.5333333333333333])
+        np.testing.assert_allclose(standard_error, [0.1178511301977579])
+        np.testing.assert_allclose(lower, estimate - 1.96 * standard_error)
+        np.testing.assert_allclose(upper, estimate + 1.96 * standard_error)
 
 
 class RepairOverlayTest(unittest.TestCase):
