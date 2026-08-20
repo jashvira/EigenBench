@@ -1,4 +1,4 @@
-"""Held-out evaluation for direct ratings and criterion BTD."""
+"""Evaluate direct-rating factors and criterion BTD on unseen scenarios."""
 
 from __future__ import annotations
 
@@ -36,7 +36,14 @@ def rows_and_targets(
     scenario_ids: np.ndarray,
     standardized_ratings: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Join pairwise rows to direct rating gaps in the same orientation."""
+    """Match comparison rows to standardized direct-rating margins.
+
+    ``blocks[s]`` has columns ``(judge_criterion, left, right, trit)``.
+    ``standardized_ratings`` has shape ``(judge_criteria, scenarios, models)``
+    and follows the order of ``scenario_ids`` along its scenario axis.
+
+    Returns comparison rows and one left-minus-right rating target per row.
+    """
     row_parts: list[np.ndarray] = []
     target_parts: list[np.ndarray] = []
     for position, scenario in enumerate(scenario_ids):
@@ -52,10 +59,16 @@ def rows_and_targets(
 
 
 def calibration_metrics(logits: np.ndarray, choices: np.ndarray) -> dict[str, float]:
+    """Return loss, accuracy, tie ECE, and conditional win/loss ECE.
+
+    ``logits`` has columns ``(tie, left wins, right wins)``. ``choices`` uses
+    the corresponding labels ``0``, ``1``, and ``2``.
+    """
     metrics = classification_metrics(logits, choices)
     probabilities = softmax_logits(logits)
 
     def ece(probability: np.ndarray, outcome: np.ndarray, bins: int = 10) -> float:
+        """Compute expected calibration error over equal-width bins."""
         edges = np.linspace(0.0, 1.0, bins + 1)
         total = len(probability)
         value = 0.0
@@ -71,6 +84,7 @@ def calibration_metrics(logits: np.ndarray, choices: np.ndarray) -> dict[str, fl
 
     metrics["tie_ece"] = ece(probabilities[:, 0], choices == 0)
     strict = choices != 0
+    # Remove tie mass before checking left-versus-right calibration.
     strict_probability = probabilities[strict, 1] / probabilities[strict, 1:].sum(
         axis=1
     )
@@ -79,6 +93,7 @@ def calibration_metrics(logits: np.ndarray, choices: np.ndarray) -> dict[str, fl
 
 
 def mean_se(rows: list[dict[str, object]], key: str) -> dict[str, float]:
+    """Return the mean and standard error of one numeric result field."""
     values = np.asarray([float(row[key]) for row in rows])
     return {
         "mean": float(values.mean()),
@@ -97,6 +112,14 @@ def fit_models(
     max_iterations: int,
     direct_method: str,
 ) -> tuple[MarginFit, np.ndarray, CriterionBTDFit]:
+    """Fit direct-rating and BTD models to one training split.
+
+    The direct model is fit by SVD or margin regression, then calibrated to
+    trit probabilities. The BTD model is initialized from that fit and trained
+    on the comparison labels.
+
+    Returns the direct fit, its calibration parameters, and the BTD fit.
+    """
     num_rows, _, num_models = standardized_ratings.shape
     if direct_method == "svd":
         direct = fit_svd_direct(
@@ -149,6 +172,13 @@ def cross_validate(
     max_iterations: int,
     direct_method: str,
 ) -> tuple[list[dict[str, object]], np.ndarray, np.ndarray, np.ndarray]:
+    """Train on scenario folds and predict comparisons from unseen scenarios.
+
+    Returns per-fold metrics, trit labels, direct-model probabilities, and
+    BTD probabilities. Both probability arrays have columns
+    ``(tie, left wins, right wins)``.
+    """
+    # Each criterion-judge pair is one row in both factor models.
     flattened = data.ratings.reshape(
         data.ratings.shape[0] * data.ratings.shape[1],
         data.ratings.shape[2],
@@ -161,6 +191,7 @@ def cross_validate(
     matched_positions = np.asarray(
         [scenario_position[int(scenario)] for scenario in data.scenario_ids]
     )
+    # Use only scenarios whose direct and pairwise records share exact responses.
     matched = flattened[:, matched_positions, :]
     split = scenario_folds(len(data.scenario_ids), folds, seed)
     output: list[dict[str, object]] = []
@@ -273,7 +304,7 @@ def reliability_rows(
     *,
     bins: int = 10,
 ) -> list[dict[str, object]]:
-    """Bin held-out tie and strict-win probabilities."""
+    """Bin held-out tie and conditional left-win probabilities."""
     output: list[dict[str, object]] = []
     edges = np.linspace(0.0, 1.0, bins + 1)
     for model_name, probabilities in (
@@ -311,7 +342,11 @@ def svd_rank_curve(
     folds: int,
     seed: int,
 ) -> tuple[list[dict[str, object]], list[dict[str, float | int]]]:
-    """Measure held-out matched-margin MSE across SVD ranks."""
+    """Cross-validate direct-rating margin MSE across SVD ranks.
+
+    Returns one row per fold and rank, followed by the summary for each rank.
+    Rank zero is the all-zero score baseline.
+    """
     flattened = data.ratings.reshape(
         data.ratings.shape[0] * data.ratings.shape[1],
         data.ratings.shape[2],
