@@ -15,11 +15,41 @@ def compute_trust_matrix(model, device: str = "cpu"):
 
 
 def compute_trust_matrix_ties(model, device: str = "cpu"):
+    """Build Davidson trust from a trained PyTorch model.
+
+    This is the legacy model-facing wrapper. It extracts the fitted score
+    vectors and tie parameters, then delegates to the representation-agnostic
+    helper below.
+    """
     U = model.u.weight.data.to(device)
     V = model.v.weight.data.to(device)
     log_lambda = model.log_lambda.weight.data.to(device)
 
-    logits = U @ V.t()
+    return compute_trust_matrix_ties_from_logits(U @ V.t(), log_lambda)
+
+
+def compute_trust_matrix_ties_from_logits(
+    logits: torch.Tensor,
+    log_lambda: torch.Tensor,
+    *,
+    logit_clip: float | None = None,
+):
+    """Build the Davidson trust matrix from fitted logits and tie strengths.
+
+    This is the shared math used by both paths: the original BTD path passes
+    values from a PyTorch model, while the numerical comparison passes arrays
+    fitted by SciPy. They produce the same score matrix, tie contribution,
+    row normalization, and EigenTrust input; only the fitting framework differs.
+    """
+    if logits.ndim != 2 or logits.shape[0] != logits.shape[1]:
+        raise ValueError("Davidson logits must be a square matrix")
+    if log_lambda.numel() != logits.shape[0]:
+        raise ValueError("Expected one Davidson tie parameter per judge")
+    log_lambda = log_lambda.reshape(-1, 1)
+    if logit_clip is not None:
+        logits = torch.clamp(logits, -logit_clip, logit_clip)
+        log_lambda = torch.clamp(log_lambda, -logit_clip, logit_clip)
+
     s = torch.exp(logits)
     lambda_i = torch.exp(log_lambda)
 
@@ -46,21 +76,29 @@ def damp_matrix(C, alpha: float = 0.0):
     return (1 - alpha) * C + alpha * E
 
 
-def eigentrust(C, alpha: float = 0.0, tol: float = 1e-6, max_iter: int = 1000, verbose: bool = True):
+def eigentrust(
+    C,
+    alpha: float = 0.0,
+    tol: float = 1e-6,
+    max_iter: int = 1000,
+    verbose: bool = True,
+    raise_on_nonconvergence: bool = False,
+):
     T = damp_matrix(C, alpha)
-    t = torch.full((T.size(0),), 1.0 / T.size(0), device=T.device)
+    t = torch.full(
+        (T.size(0),),
+        1.0 / T.size(0),
+        device=T.device,
+        dtype=T.dtype,
+    )
 
-    if verbose:
-        for _ in tqdm(range(max_iter)):
-            t_next = t @ T
-            if torch.norm(t_next - t, p=1) < tol:
-                break
-            t = t_next
-    else:
-        for _ in range(max_iter):
-            t_next = t @ T
-            if torch.norm(t_next - t, p=1) < tol:
-                break
-            t = t_next
+    iterations = tqdm(range(max_iter)) if verbose else range(max_iter)
+    for _ in iterations:
+        t_next = t @ T
+        if torch.norm(t_next - t, p=1) < tol:
+            return t_next
+        t = t_next
 
+    if raise_on_nonconvergence:
+        raise RuntimeError("EigenTrust did not converge")
     return t_next
