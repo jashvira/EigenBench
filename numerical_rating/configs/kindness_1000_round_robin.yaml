@@ -1,0 +1,69 @@
+run_id: kindness_1000_numerical_round_robin
+dataset: askreddit
+constitution: data/constitutions/kindness.json
+source: data/output/valuearena/processed/full8_kindness/askreddit_1000_responses_completed.json
+prompt: numerical_rating/prompts/whole_constitution_pointwise.md
+selection: AskReddit scenarios 0-999 with one response from each target model
+expected_scenarios: 1000
+expected_models: 8
+expected_response_cells: 8000
+generation:
+  max_tokens: 1024
+  temperature: 0
+criterion_generation:
+  max_tokens: 4096
+score_scale:
+  min: 1
+  max: 10
+response_models:
+  0:
+    name: Claude 4 Sonnet
+    id: claude-sonnet-4-20250514
+  1:
+    name: GPT 4.1
+    id: gpt-4.1-2025-04-14
+  2:
+    name: Gemini 2.5 Pro
+    id: gemini-2.5-pro
+  3:
+    name: Grok 4
+    id: grok-4-0709
+  4:
+    name: DeepSeek v3
+    id: deepseek/deepseek-chat-v3-0324
+  5:
+    name: Qwen 3 235B 2507
+    id: qwen/qwen3-235b-a22b-2507
+  6:
+    name: Kimi K2 0905
+    id: moonshotai/kimi-k2-0905
+  7:
+    name: Llama 4 Maverick
+    id: meta-llama/llama-4-maverick
+judges:
+  - name: Claude 4 Sonnet
+    model: openrouter/anthropic/claude-sonnet-4
+    target_model_id: 0
+  - name: GPT 4.1
+    model: openrouter/openai/gpt-4.1
+    target_model_id: 1
+  - name: Gemini 2.5 Pro
+    model: openrouter/google/gemini-2.5-pro
+    target_model_id: 2
+    max_tokens: 4096
+  - name: Grok 4.3
+    model: openrouter/x-ai/grok-4.3
+    target_model_id: 3
+    proxy_for: Grok 4 (grok-4-0709)
+  - name: DeepSeek v3
+    model: openrouter/deepseek/deepseek-chat-v3-0324
+    target_model_id: 4
+  - name: Qwen 3 235B 2507
+    model: openrouter/qwen/qwen3-235b-a22b-2507
+    target_model_id: 5
+  - name: Kimi K2 0905
+    model: openrouter/moonshotai/kimi-k2-0905
+    target_model_id: 6
+  - name: Llama 4 Maverick
+    model: openrouter/meta-llama/llama-4-maverick
+    target_model_id: 7

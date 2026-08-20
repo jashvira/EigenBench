@@ -5,6 +5,9 @@ scikit-learn
 matplotlib 
 tqdm 
 python-dotenv 
+inspect-ai
+PyYAML
+zipfile-zstd
 openai
 scipy 
 pandas 

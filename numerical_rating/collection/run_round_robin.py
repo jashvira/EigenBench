@@ -1,0 +1,105 @@
+"""Run the configured numerical judges as one resumable Inspect eval set."""
+
+from __future__ import annotations
+
+import argparse
+import os
+from pathlib import Path
+from typing import Callable
+
+from dotenv import load_dotenv
+from inspect_ai import Task, eval_set
+from inspect_ai.util import AdaptiveConcurrency
+
+from numerical_rating.collection.data import load_config, repo_path
+from numerical_rating.collection.run_pointwise import pointwise_constitution_rating
+
+ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_CONFIG = "numerical_rating/configs/kindness_1000_round_robin.yaml"
+DEFAULT_LOG_DIR = ROOT / "runs/numerical_rating/kindness_1000_round_robin"
+PARTIAL_LOG_ADAPTIVE_CONNECTIONS = AdaptiveConcurrency.model_validate("5-20-50")
+
+
+def parse_args(
+    *,
+    default_log_dir: Path = DEFAULT_LOG_DIR,
+) -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default=DEFAULT_CONFIG)
+    parser.add_argument("--log-dir", type=repo_path, default=default_log_dir)
+    parser.add_argument("--judge", action="append", default=[])
+    parser.add_argument("--max-tasks", type=int, default=8)
+    parser.add_argument("--connections-per-judge", type=int, default=4)
+    parser.add_argument("--retry-attempts", type=int, default=3)
+    parser.add_argument("--retry-on-error", type=int, default=1)
+    parser.add_argument("--http-retries", type=int, default=3)
+    parser.add_argument("--timeout", type=int, default=180)
+    parser.add_argument("--generation-max-tokens", type=int)
+    parser.add_argument("--limit", type=int)
+    return parser.parse_args()
+
+
+def run(
+    args: argparse.Namespace,
+    *,
+    task_factory: Callable[..., Task],
+) -> int:
+    """Run one rating task for every selected judge."""
+    config = load_config(args.config)
+    selected = [
+        judge
+        for judge in config.judges
+        if not args.judge or judge.name in args.judge or judge.model in args.judge
+    ]
+    if not selected:
+        raise ValueError("No configured judges matched --judge")
+
+    load_dotenv(ROOT / ".env")
+    if not os.environ.get("OPENROUTER_API_KEY"):
+        raise RuntimeError("OPENROUTER_API_KEY is not set")
+
+    tasks = []
+    limit = args.limit
+    for judge in selected:
+        max_tokens = (
+            args.generation_max_tokens
+            if args.generation_max_tokens is not None
+            else judge.max_tokens
+        )
+        task_kwargs = {"config": args.config, "judge_model": judge.model}
+        if max_tokens is not None:
+            task_kwargs["generation_max_tokens"] = max_tokens
+        if limit is not None:
+            task_kwargs["limit"] = limit
+        tasks.append(task_factory(**task_kwargs))
+    success, _ = eval_set(
+        tasks=tasks,
+        log_dir=str(args.log_dir),
+        log_format="eval",
+        display="plain",
+        max_tasks=min(args.max_tasks, len(tasks)),
+        # Each sample makes one judge call, so one cap controls both layers.
+        max_samples=args.connections_per_judge,
+        max_connections=args.connections_per_judge,
+        # Preserve partial-log task identity; max_connections takes precedence.
+        adaptive_connections=PARTIAL_LOG_ADAPTIVE_CONNECTIONS,
+        max_retries=args.http_retries,
+        retry_attempts=args.retry_attempts,
+        retry_immediate=True,
+        retry_cleanup=False,
+        retry_on_error=args.retry_on_error,
+        fail_on_error=True,
+        continue_on_fail=True,
+        timeout=args.timeout,
+        log_buffer=10,
+        log_dir_allow_dirty=bool(args.judge),
+    )
+    return 0 if success else 1
+
+
+def main() -> int:
+    return run(parse_args(), task_factory=pointwise_constitution_rating)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
