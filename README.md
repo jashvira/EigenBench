@@ -11,6 +11,7 @@ EigenBench is a black-box framework for quantifying value alignment across langu
 ## Table of Contents
 
 - [Install](#install)
+- [Direct Numerical Ratings](#direct-numerical-ratings)
 - [Quick Start](#quick-start)
 - [Run Spec](#run-spec)
 - [Spec Modes](#spec-modes)
@@ -42,6 +43,12 @@ Set API keys in `.env`:
 
 - `OPENROUTER_API_KEY` — required for OpenRouter models
 - `HF_TOKEN` — required for gated/private Hugging Face models (also reads from `~/.huggingface/token` via `huggingface-cli login`)
+
+## Direct Numerical Ratings
+
+See [numerical_rating/README.md](numerical_rating/README.md) for direct 1--10
+ratings and pairwise BTD comparisons. External inputs are listed in
+[numerical_rating/DATA.md](numerical_rating/DATA.md).
 
 ## Quick Start
 

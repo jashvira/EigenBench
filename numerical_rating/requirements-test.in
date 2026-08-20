@@ -1,0 +1,14 @@
+# Tested with CPython 3.11 on macOS. Keep direct dependencies here and
+# regenerate requirements-test.txt after changing a version.
+inspect-ai==0.3.240
+matplotlib==3.9.4
+numpy==2.4.6
+openai==2.44.0
+pytest==9.1.1
+python-dotenv==1.2.2
+PyYAML==6.0.3
+scikit-learn==1.9.0
+scipy==1.17.1
+torch==2.8.0
+tqdm==4.68.3
+zipfile-zstd==0.0.4
