@@ -11,6 +11,7 @@ EigenBench is a black-box framework for quantifying value alignment across langu
 ## Table of Contents
 
 - [Install](#install)
+- [Scenario Classifier](#scenario-classifier)
 - [Quick Start](#quick-start)
 - [Run Spec](#run-spec)
 - [Spec Modes](#spec-modes)
@@ -42,6 +43,12 @@ Set API keys in `.env`:
 
 - `OPENROUTER_API_KEY` — required for OpenRouter models
 - `HF_TOKEN` — required for gated/private Hugging Face models (also reads from `~/.huggingface/token` via `huggingface-cli login`)
+
+## Scenario Classifier
+
+See [scenario_classifier/README.md](scenario_classifier/README.md) for the BM25
+and embedding retrieval pipeline that routes scenarios to relevant constitution
+criteria.
 
 ## Quick Start
 
