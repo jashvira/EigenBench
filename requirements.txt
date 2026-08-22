@@ -6,6 +6,7 @@ matplotlib
 tqdm 
 python-dotenv 
 openai
+requests
 scipy 
 pandas 
 anthropic 
