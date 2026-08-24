@@ -68148,7 +68148,7 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 			},
 			{
 				colId: "model",
-				headerName: "Model",
+				headerName: "Judge Model",
 				initialWidth: 300,
 				minWidth: 100,
 				maxWidth: 400,
@@ -163748,7 +163748,7 @@ function buildSampleColumns(ctx) {
 	}, {
 		colId: "model",
 		field: "model",
-		headerName: "Model",
+		headerName: "Judge Model",
 		initialFlex: 1,
 		minWidth: 100,
 		sortable: true,
