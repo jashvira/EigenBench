@@ -57949,9 +57949,11 @@ var initialState$1 = {
 	selectedLogFile: void 0,
 	listing: {
 		columnVisibility: {
+			type: false,
 			taskArgs: false,
 			tags: false,
 			score: false,
+			status: false,
 			completedAt: false,
 			totalTokens: false,
 			duration: false
@@ -68025,6 +68027,14 @@ var primaryModelValue = (row) => {
 	if (row.model && row.model !== "none/none") return row.model;
 	return displayModelRoles(row)[0]?.[1];
 };
+var constitutionName = (value) => typeof value === "string"
+	? value.replace(/ direct ratings$/, "")
+	: value;
+var constitutionFileOrder = {
+	kindness: 0,
+	conservatism: 1,
+	environmental_ethics: 2
+};
 /**
 * Build a stable, unique column key for a (scorer, metric) pair. The reducer
 * is intentionally omitted so the same logical metric is one column regardless
@@ -68102,7 +68112,7 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 			},
 			{
 				field: "task",
-				headerName: "Task",
+				headerName: "Constitution",
 				initialWidth: 250,
 				minWidth: 150,
 				sortable: true,
@@ -68112,14 +68122,14 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 				valueGetter: (params) => {
 					const item = params.data;
 					if (!item) return "";
-					if (item.type === "file") return item.task || parseLogFileName(item.name).name;
+					if (item.type === "file") return constitutionName(item.task || parseLogFileName(item.name).name);
 					return item.name;
 				},
 				cellRenderer: (params) => {
 					const item = params.data;
 					if (!item) return null;
 					let value = item.name;
-					if (item.type === "file") value = item.task || parseLogFileName(item.name).name;
+					if (item.type === "file") value = constitutionName(item.task || parseLogFileName(item.name).name);
 					const href = item.url ? `${window.location.pathname}#${item.url}` : void 0;
 					return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: styles.nameCell,
@@ -68322,7 +68332,7 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 			},
 			{
 				field: "totalSamples",
-				headerName: "Samples",
+				headerName: "Judgments",
 				initialWidth: 90,
 				minWidth: 60,
 				maxWidth: 120,
@@ -115894,11 +115904,24 @@ var LogListGrid = ({ items, currentPath, scopeKey, gridRef: externalGridRef, mod
 	const scopePrefix = mode === "logs" ? currentPath : void 0;
 	const [scoresViewMode] = useProperty("log-list-scores-view", "mode", { defaultValue: "by-metric" });
 	const { columns, visibility } = useLogListColumns(mode, scopePrefix, scoresViewMode);
-	const initialGridState = gridState;
+	const initialGridState = gridState ?? {
+		columnOrder: { orderedColIds: [
+			"task",
+			"model",
+			"totalSamples"
+		] }
+	};
 	(0, import_react.useEffect)(() => {
 		gridContainerRef.current?.focus();
 	}, []);
-	const data = useKeyedMemo(items, (item) => item.id, (item) => [
+	const orderedItems = (0, import_react.useMemo)(() => [...items].sort((a, b) => {
+		const aName = String(a.name);
+		const bName = String(b.name);
+		const rankDifference = (constitutionFileOrder[aName.split("__", 1)[0]] ?? 3)
+			- (constitutionFileOrder[bName.split("__", 1)[0]] ?? 3);
+		return rankDifference || aName.localeCompare(bName);
+	}), [items]);
+	const data = useKeyedMemo(orderedItems, (item) => item.id, (item) => [
 		item.id,
 		item.type,
 		item.url,
