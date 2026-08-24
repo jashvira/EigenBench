@@ -68035,6 +68035,10 @@ var constitutionFileOrder = {
 	conservatism: 1,
 	environmental_ethics: 2
 };
+var formatEloInterval = (row) => {
+	if (row?.eigenbenchElo === void 0 || row?.eloCiLower === void 0 || row?.eloCiUpper === void 0) return "";
+	return `${Math.round(row.eigenbenchElo)} [${Math.round(row.eloCiLower)}, ${Math.round(row.eloCiUpper)}]`;
+};
 /**
 * Build a stable, unique column key for a (scorer, metric) pair. The reducer
 * is intentionally omitted so the same logical metric is one column regardless
@@ -68111,9 +68115,23 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 				}
 			},
 			{
+				field: "evalueeRank",
+				headerName: "Rank",
+				initialWidth: 64,
+				minWidth: 60,
+				maxWidth: 88,
+				sortable: true,
+				filter: "agNumberColumnFilter",
+				resizable: true,
+				cellRenderer: (params) => {
+					if (params.value === void 0 || params.value === null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmptyCell$1, {});
+					return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: formatNumber(params.value) });
+				}
+			},
+			{
 				field: "task",
 				headerName: "Constitution",
-				initialWidth: 250,
+				initialWidth: 180,
 				minWidth: 150,
 				sortable: true,
 				filter: true,
@@ -68158,8 +68176,8 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 			},
 			{
 				colId: "model",
-				headerName: "Judge Model",
-				initialWidth: 300,
+				headerName: "Evaluee Model",
+				initialWidth: 210,
 				minWidth: 100,
 				maxWidth: 400,
 				sortable: true,
@@ -68196,6 +68214,21 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 						});
 					}
 					return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmptyCell$1, {});
+				}
+			},
+			{
+				field: "eigenbenchElo",
+				headerName: "Elo [95% interval]",
+				initialWidth: 180,
+				minWidth: 170,
+				maxWidth: 220,
+				sortable: true,
+				filter: "agNumberColumnFilter",
+				resizable: true,
+				cellRenderer: (params) => {
+					const value = formatEloInterval(params.data);
+					if (!value) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmptyCell$1, {});
+					return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: value });
 				}
 			},
 			{
@@ -68333,7 +68366,7 @@ var useLogListColumns = (mode = "logs", scopePrefix, viewMode = "by-metric") => 
 			{
 				field: "totalSamples",
 				headerName: "Judgments",
-				initialWidth: 90,
+				initialWidth: 100,
 				minWidth: 60,
 				maxWidth: 120,
 				sortable: true,
@@ -115846,6 +115879,10 @@ var buildLogListRow = (item, details) => {
 		url: item.url,
 		task: item.type === "file" ? preview?.task : item.name,
 		model: item.type === "file" ? preview?.model : item.type === "pending-task" ? item.model : void 0,
+		evalueeRank: details?.eval?.metadata?.evaluee_rank,
+		eigenbenchElo: details?.eval?.metadata?.eigenbench_elo,
+		eloCiLower: details?.eval?.metadata?.elo_ci_lower,
+		eloCiUpper: details?.eval?.metadata?.elo_ci_upper,
 		modelRoles: item.type === "file" ? preview?.model_roles ?? void 0 : void 0,
 		score: preview?.primary_metric?.value,
 		status: preview?.status,
@@ -115906,8 +115943,10 @@ var LogListGrid = ({ items, currentPath, scopeKey, gridRef: externalGridRef, mod
 	const { columns, visibility } = useLogListColumns(mode, scopePrefix, scoresViewMode);
 	const initialGridState = gridState ?? {
 		columnOrder: { orderedColIds: [
+			"evalueeRank",
 			"task",
 			"model",
+			"eigenbenchElo",
 			"totalSamples"
 		] }
 	};
@@ -163771,7 +163810,7 @@ function buildSampleColumns(ctx) {
 	}, {
 		colId: "model",
 		field: "model",
-		headerName: "Judge Model",
+		headerName: "Evaluee Model",
 		initialFlex: 1,
 		minWidth: 100,
 		sortable: true,
